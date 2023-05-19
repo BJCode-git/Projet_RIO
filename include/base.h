@@ -51,19 +51,22 @@ void raler(const char* msg){
 typedef struct sockaddr_in Sockaddr_in;
 
 typedef enum {
-  BOC = 0, // Beginning of Chat
-  CEX = 1, // Chat EXchange
-  EOC = 2, // End of Chat
+  CON = 0, // connect to the proxy
+  GET, // get ip from name 
+  BOC, // Beginning of Chat
+  CEX, // Chat EXchange
+  EOC, // End of Chat
 
-  BOF = 3, // Beginning of File
-  FEX = 4, // File EXchange
-  EOF = 5, // End of File
+  BOF, // Beginning of File
+  FEX, // File EXchange
+  EOF, // End of File
   
-  EOJ = 6, // End Of Job
+  EOJ, // End Of Job
   //ACK = 7, // ACKnowledge
-  NAK = 8 // Negative AcKnowledge
-  // INE = 9, // Invalid Name Error
-  // AEU = 10 // Already Existing User
+  NAK, // Negative AcKnowledge
+  INE, // Invalid Name Error
+  AEU // Already Existing User
+
 }Data_type;
 
 

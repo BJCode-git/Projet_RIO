@@ -24,6 +24,8 @@ void *thread_client_receive(void *arg){
 
 	Shared_memory *shm = (Shared_memory*) arg;
 	Data received;
+	struct timespec start = clo, stop;
+	clock_gettime (CLOCK_MONOTONIC, &start);
 
 	while(shm->state != QUIT){
 
@@ -67,8 +69,17 @@ void *thread_client_receive(void *arg){
 				if(shm->ack_until+1 == shm->size){
 					shm->resend = 0;
 					shm->ack_until = 0;
+					csignal(&shm->peut_ecrire);
+				}
+				
+				if( clock_gettime( CLOCK_MONOTONIC, &stop) != -1 ){
+					if( (stop.tv_sec - start.tv_sec) * 1000 + (stop.tv_nsec - start.tv_nsec) / 1000000 > 1000 ){
+						shm->resend = 1;
+						shm->ack_until = received.id > 0 ? received.id - 1 : 0;
+					}
 					csignal(&shm->cond);
 				}
+				
 			break;
 			case NAK: // Negative AcKnowledge
 				shm->resend = 1;
@@ -94,7 +105,7 @@ void *thread_client_send(void *arg){
 	Shared_memory *shm = (Shared_memory*) arg;
 	clock_t send_time;
 
-    lock(&shm->mutex);
+	lock(&shm->mutex);
 	while(shm->state == CHAT){
 
 		wait(&shm->cond);
@@ -105,8 +116,6 @@ void *thread_client_send(void *arg){
         	CHK(send(shm->sock_fd, shm->buffer+ offset, shm->size*sizeof(Data), 0));
 		}
 
-        // tell that the data has been sent
-        csignal(&shm->peut_ecrire);
     }
 
     unlock(&shm->mutex);
@@ -114,19 +123,19 @@ void *thread_client_send(void *arg){
 	return pthread_exit(NULL);
 }
 
+void chat(Client *c){
 
-void chat(Client *c, Thread *thread_send, Thread *thread_receive){
-
-
+	Thread *thread_send, Thread *thread_receive;
 	TCHK(pthread_create(&thread_send, NULL, thread_client_send, (void*)c));
 	TCHK(pthread_create(&thread_receive, NULL, thread_client_receive, (void*)c));
 
-	for(int i=0; i<MAX_PSEUDO_LENGTH; i++){
+	int taille = strlen(shm.buffer);
+	for(int i=0; i<taille+1; i++){
 			c->shm.buffer[i].data = (uint8_t )c->pseudo[i];
 	}
-	c->shm.buffer[MAX_PSEUDO_LENGTH] = '>';
-	c->shm.buffer[MAX_PSEUDO_LENGTH] = ' ';
-	c->shm.size = MAX_PSEUDO_LENGTH+2;
+	c->shm.buffer[taille+1] = '>';
+	c->shm.buffer[taille+2] = ' ';
+	c->shm.size = taille+2;
 	c->shm.state = CHAT;
 
 	while(c->shm.state == CHAT ){
@@ -134,8 +143,9 @@ void chat(Client *c, Thread *thread_send, Thread *thread_receive){
 		fflush(stdout);
 
 		lock(&c->shm.mutex);
-		fgets(c->shm.buffer, BUFLEN - c->shm.size, stdin);
+		fgets(c->shm.buffer+c->shm.size, BUFLEN - c->shm.size, stdin);
 		c->shm.size += strlen(c->shm.buffer);
+		cwait(&shm->peut_ecrire)
 
 		unlock(&c->shm.mutex);
 	}
@@ -144,9 +154,7 @@ void chat(Client *c, Thread *thread_send, Thread *thread_receive){
 	pthread_join(thread_receive, NULL);
 }
 
-void ftp(Client *c){
-
-}
+void ftp(Client *c){}
 
 void initialize_client(Client *c){
 
@@ -190,8 +198,7 @@ void connect_to_proxy(Client *c){
 
 	// send the pseudo
 	//CHK(send(c->shm.sock_fd, c->pseudo, MAX_PSEUDO_LENGTH, 0));
-
-};
+}
 
 int main(int argc, char **argv){
 
@@ -199,7 +206,7 @@ int main(int argc, char **argv){
 	initialize_client(&c);
 	connect_to_proxy(&c);
 
-	chat(&c, c.thread_send, c.thread_receive);
+	chat(&c);
 
 	return 0;
 }
