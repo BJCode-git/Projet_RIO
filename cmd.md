@@ -1,0 +1,3 @@
+FTP
+user
+quit
