@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <limits.h>
 #include <stdnoreturn.h>
 #include <string.h>
 
@@ -36,13 +37,13 @@ void raler(const char* msg){
 #define Thread pthread_t
 
 #define Condition pthread_cond_t
-#define wait(p_cond,p_mutex) TCHK(pthread_cond_wait(p_cond,p_mutex))
-#define timedwait(p_cond,p_mutex,p_time) TCHK(pthread_cond_timedwait(p_cond,p_mutex,p_time))
-#define signal(p_cond) TCHK(pthread_cond_signal(p_cond))
+#define cwait(p_cond,p_mutex) TCHK(pthread_cond_wait(p_cond,p_mutex))
+#define ctimedwait(p_cond,p_mutex,p_time) TCHK(pthread_cond_timedwait(p_cond,p_mutex,p_time))
+#define csignal(p_cond) TCHK(pthread_cond_signal(p_cond))
 
-#define DEFAULT_LISTEN_PORT_PROXY 52000
-#define DEFAULT_EXCHANGE_PORT_SERVER 52001
-#define DEFAULT_CLIENT_PORT 48000
+#define DEFAULT_LISTEN_PORT_PROXY htons(52000)
+#define DEFAULT_EXCHANGE_PORT_SERVER htons(52001)
+#define DEFAULT_CLIENT_PORT htons(48000)
 #define BUFLEN 1024
 #define DATALEN 2
 #define MAX_PSEUDO_LENGTH 30
@@ -53,24 +54,25 @@ void raler(const char* msg){
 typedef struct sockaddr_in Sockaddr_in;
 
 typedef enum {
-  CON, // Connection
-  CLO, // CLOse connection
-  GET, // GET information about a user
+  DT_CON, // Connection
+  DT_CLO, // CLOse connection
+  DT_GET, // GET information about a user
 
-  BOC, // Beginning of Chat
-  CEX, // Chat EXchange
-  EOC, // End Of Chat
+  DT_BOC, // Beginning of Chat
+  DT_CEX, // Chat EXchange
+  DT_EOC, // End Of Chat
 
-  BOF, // Beginning of File
-  FEX, // File EXchange
-  EOF, // End Of File
+  DT_BOF, // Beginning of File
+  DT_FEX, // File EXchange
+  DT_EOF, // End Of File
 
-  EOJ, // End Of Job
+  DT_EOJ, // End Of Job
 
-  ACK, // ACKnowledge
-  NAK, // Negative AcKnowledge
-  INE, // Invalid Name Error
-  AEU // Already Existing User
+  DT_ACK, // ACKnowledge
+  DT_NAK, // Negative AcKnowledge
+
+  DT_INE, // Invalid Name Error
+  DT_AEU // Already Existing User
 }Data_type;
 
 
@@ -82,15 +84,5 @@ typedef struct{
   uint8_t data;
   uint8_t crc;
 }Data;
-
-typedef struct{
-  Data_type type;
-  char name[MAX_PSEUDO_LENGTH];
-}Connection_Request;
-
-typedef struct{
-  Data_type type;
-  char name[MAX_PSEUDO_LENGTH];
-}Connection_Request;
 
 #endif
