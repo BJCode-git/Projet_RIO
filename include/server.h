@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SERVER_H
+
 #include "base.h"
 #include "correcteur.h"
 
@@ -34,6 +35,4 @@ void initialize_server(Server *s, int port);
 
 void wait_for_proxy(Server *s);
 
-
-
-//void *server(int argc, char **argv);
+#endif

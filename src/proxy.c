@@ -32,40 +32,11 @@ int dynamic_realloc(void **ptr, size_t *allocated_size, size_t required_size, si
 }
 */
 
-typedef struct{
-  int sock_fd;
-  Sockaddr_in server_addr;
-  int load;
-}Server;
-
-typedef struct{
-  int sock_fd;
-  Sockaddr_in addr;
-  char name[MAX_PSEUDO_LENGTH];
-}Client;
-
-typedef struct{
-  int sock_listen_fd;
-  Sockaddr_in proxy_addr;
-  Thread thread_client[BUFLEN];
-  Thread thread_server[BUFLEN];
-
-  Client clients[BUFLEN];
-  int nb_clients;
-  Mutex mutex_clients;
-
-  Server servers[BUFLEN];
-  int nb_serveurs;
-  Mutex mutex_servers;
-  
-}Proxy;
-
-
-Client* get_client(Proxy *p, char *pseudo){
-    lock(&p->mutex_clients);
-    for(int i = 0 ; i< p->nb_clients;i++ ){
-        if(strncmp(p->clients[i].pseudo,pseudo, MAX_PSEUDO_LENGTH)==0){
-            unlock(&p->mutex_clients);
+Client* get_client(Shared_memory *shm, char *pseudo){
+    lock(&shm->mutex_clients);
+    for(int i = 0 ; i< shm->nb_clients;i++ ){
+        if(strncmp(shm->clients[i].pseudo,pseudo, MAX_PSEUDO_LENGTH)==0){
+            unlock(&shm->mutex_clients);
             return clients + i;
         }
     }
@@ -73,7 +44,58 @@ Client* get_client(Proxy *p, char *pseudo){
     return NULL;
 }
 
-void *thread_client(void *arg){
+int get_client_fd(Shared_memory *shm,Sockaddr_in *addr){
+    lock(&shm->mutex_clients);
+    for(int i = 0 ; i< shm->nb_clients;i++ ){
+        if(memcmp(shm->clients[i].addr,addr, sizeof(Sockaddr_in))==0){
+            unlock(&shm->mutex_clients);
+            return clients.sock_fd;
+        }
+    }
+    unlock(&shm->mutex);
+    return -1;
+}
+
+Server* get_server_with_min_load(Shared_memory *shm){
+    int min = INT_MAX;
+    Server *s = NULL;
+
+    mutex_lock(&shm->mutex_servers);
+
+    for(int i = 0 ; i< shm->nb_servers;i++ ){
+        if(shm->servers[i].load < min){
+            min = shm->servers[i].load;
+            s = shm->servers+i;
+        }
+    }
+    if(s != NULL)
+        s->load++;
+
+    mutex_unlock(&shm->mutex_servers);
+
+    return index;
+}
+
+void accept_new_client(Proxy *p){
+    if(p->shm.nb_clients >= BUFLEN) return;
+
+    memset(p->clients[p->nb_clients] , 0, sizeof(Client));
+
+    int fd =  accept( p->sock_listen_fd, &p->clients[p->nb_clients].addr, sizeof(struct sockaddr));
+    if(fd == -1) return;
+        p->clients[p->shm.nb_clients].sock_fd = fd;
+
+    p->clients[p->shm.nb_clients].server = get_server_with_min_load(&p->shm);
+
+    if(p->clients[p->shm.nb_clients].server == NULL) return;
+    
+    if(pthread_create(p->thread_client+p->shm.nb_clients, NULL, handle_client_stream, p->clients+p->nb_clients)==-1) 
+        return;
+
+    p->shm.nb_clients++;
+}
+
+void *handle_client_stream(void *arg){
     
     Client *c = (Client*) arg;
     Data data;
@@ -85,12 +107,32 @@ void *thread_client(void *arg){
         memset(&data, 0, sizeof(data));
         recv(c->sock_fd, &data, sizeof(data), 0);
 
-        if(data.type == CON){
+        // if client close the connection
+        if(data.type == CLO){
+            continuer = 0;
+            
+            // remove client from list
+            lock(&c->shm->mutex_clients);
+            memset(c, 0, sizeof(Client));
+            close(c->sock_fd);
+            c->sock_fd = -1;
+            unlock(&c->shm->mutex_clients);
+
+            // decrement load
+            lock(&c->shm->mutex_servers);
+            c->server->load--;
+            unlock(&c->shm->mutex_servers);
+        
+        }
+
+        // if client want to connect
+        else if(data.type == CON){
             memset(c->pseudo, 0, MAX_PSEUDO_LENGTH);
             recv(c->sock_fd, c->pseudo, MAX_MESSAGE_LENGTH-1, 0);
             continue;
         }
 
+        // if client want to get address of another client
         else if(data.type == GET){
 
             char name[MAX_PSEUDO_LENGTH];
@@ -108,87 +150,145 @@ void *thread_client(void *arg){
             }
 
             send(c->sock_fd, &data, sizeof(data), 0);
-
         }
-        
-        else
-            send(c->server_fd, &data, sizeof(data), 0);
+
+        else{
+            bruiter(&data.data);
+            send(c->server->server_fd, &data, sizeof(data), 0);
+        }
     }
 
     return pthread_exit(NULL);
 }
 
 void *thread_server(void *arg){
+    Server *s = (Server*) arg;
+    Data data;
+    while(1){
+        // receive data from server
+        memset(&data, 0, sizeof(data));
+        recv(s->server_fd, &data, sizeof(data), 0);
+        // send data to client
+        int fd = get_client_fd(s->shm, &data.dest_addr);
 
+        // if the dest client is end the connection,
+        // we send the message to sender client
+        if(fd != -1){
+            data.type = data.type == CEX ? EOC : EOF;
+            fd = get_client_fd(s->shm, &data.origin_addr);
+        }
+        send(fd, &data, sizeof(data), 0) ;
+    }
+    pthread_exit(NULL);
 }
 
-void initialize_proxy(Proxy *p, int argc, char **argv){
-
-    shm->mutex_clients = MUTEX_INITIALIZER;
-    shm->receive_mutex = MUTEX_INITIALIZER;
-    shm->send_mutex = MUTEX_INITIALIZER;
-    shm->nb_clients;
-    shm->nb_serveurs;
-    shm->nb_mutex;
-}
-
-void accept_new_client(Proxy *p){
-
-    memset(p->clients[p->nb_clients] , 0, sizeof(Client));
-
-    int fd =  accept( p->sock_listen_fd, &p->clients[p->nb_clients].addr, sizeof(struct sockaddr));
-    if(fd == -1) return;
-    p->clients[p->nb_clients].sock_fd = fd;
+void open_new_server(Proxy *p){
     
-    if(pthread_create(p->thread_client+p->nb_clients, NULL, thread_client, p->clients+p->nb_clients)==-1) 
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    if( fd == -1) return;
+    if(connect(fd, addr, sizeof(struct sockaddr)) == -1) return;
+
+    p->servers[p->nb_servers].server_fd = fd;
+
+    if(pthread_create(p->thread_server+p->nb_servers, NULL, thread_server, p->servers+p->nb_servers)==-1){
+        close(fd);
         return;
-
-    p->nb_clients++;
+    }
+    p->nb_servers++;
 }
 
-void main(int argc, char **argv){
+void initialize_proxy(Proxy *p, int argc,char **argv){
+
+    int port = atoi(argv[1]);
+    if(port <= 0){
+        raler("Invalid port number\n");
+    }
+    p->proxy_addr.sin_family = AF_INET;
+    p->proxy_addr.sin_port = htons(port);
+    p->proxy_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     
-    Server s;
-    initialize_server(&s);
+    CHK(p->sock_listen_fd = socket(AF_INET, SOCK_STREAM, 0));
 
-    // must connect to the proxy server
+    p->shm.mutex_clients = PTHREAD_MUTEX_INITIALIZER;
+    p->shm.mutex_servers = PTHREAD_MUTEX_INITIALIZER;
+    p->shm.send_mutex = PTHREAD_MUTEX_INITIALIZER;
+    p->shm.nb_clients = 0;
+    p->shm.nb_serveurs = 0;
 
-    while (1) {
 
-        // Prepare a thread to serve the connection 
-        CHK(dynamic_realloc(&threads, &nb_threads_allocated, nb_threads + 1, sizeof(pthread_t))) ;
+    FILE * f = NULL;
+    PCHK( f = fopen( argv[1], "r" ) ); 
 
-        /* Accept connection to client. */
-        Sockaddr_in client_address;
-        int Sockaddr_len = sizeof(client_address);
-        new_socket_fd = accept(socket_fd, (struct sockaddr *)&pthread_arg->client_address, &Sockaddr_len);
-        if (new_socket_fd == -1) {
-            perror("accept");
-            break;
-        }
-
-        
-
-        int res = -1;
-
-        /* try to allocate a new buffers */
-        res = dynamic_realloc(&shm.buffers, &shm.nb_buffers_allocated, shm.nb_buffers + 1, sizeof(char [BUFLEN]));
-
-        /* try to allocate as many mutex as buffers*/
-        if(res =!= -1){
-
-            res = dynamic_realloc(&shm.mutex, &shm.nb_mutex_allocated, shm.nb_mutex + 1, sizeof(pthread_mutex_t));
-            if( res == -1){
-                // si on ne peut pas allouer de mutex, on rend le buffer indisponible
-                shm.nb_buffers--;
-            }
-        }
-
-        
+    char line[129];
+    char *token = NULL;
     
+    while ( !feof(f) ) {
+
+        PCHK(fgets( buffer, MAX_LENGTH, inputFile ));
+
+        lock(&p->shm.mutex_servers);
+        memset(&p->servers[p->nb_servers], 0, sizeof(Server));
+        p->servers[p->nb_servers].shm = &p->shm;
+        p->servers[p->nb_servers].addr.sin_family = AF_INET;
+        // format : ip:port
+        char *token = strtok(line, ":");
+        if(token == NULL) continue;
+        p->servers[p->nb_servers].addr.sin_addr.s_addr = inet_addr(token);
+
+        token = strtok(NULL, "");
+        if(token == NULL)
+            p->servers[p->nb_servers].addr.sin_port = htons(DEFAULT_EXCHANGE_PORT_SERVER);
+        else
+            p->servers[p->nb_servers].addr.sin_port = htons(atoi(token));
+        open_new_server(p);
+        unlock(&p->shm.mutex_servers);
     }
 
-    for(int i = 0; i < shm.nb_connections; i++) pthread_join(shm.threads[i], NULL);
+    if(p->shm.nb_serveurs == 0){
+        raler("Pas de serveur trouvé\n");
+    }
+    
+    CHK( bind(p->sock_listen_fd, (struct sockaddr *) &p->proxy_addr, sizeof(p->proxy_addr)) );
+    CHK( listen(p->sock_listen_fd, SOMAXCONN) );
+}
 
+
+void main(int argc, char **argv){
+
+    if(argc != 3){
+        fprintf(stderr,"usage : %s <listen_port> <server_list_file>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    
+    Proxy p;
+    
+    initialize_proxy(&p, argc, argv);
+    // must connect to the proxy server
+    lock(p.shm.mutex_clients);
+    while (p.shm.nb_clients < BUFLEN) {
+        unlock(p.shm.mutex_clients);
+        // Prepare to serve a connection 
+        accept_new_client(&p);
+        lock(p.shm.mutex_clients);
+    }
+    unlock(p.shm.mutex_clients);
+
+    close(p.sock_listen_fd);
+
+    for(int i = 0; i < p.shm.nb_clients; i++) 
+        pthread_join(shm.handle_client_stream[i], NULL);
+
+    // when all clients are disconnected, we send a message to all servers
+    Data data;
+    data.type = EOJ;
+    for(int i = 0; i < p.shm.nb_servers; i++){
+        // send a message to the server to stop
+        send(p.servers[i].server_fd, &data, sizeof(data), 0);
+        pthread_cancel(shm.thread_server[i]);
+        pthread_join(shm.thread_server[i], NULL);
+    }
+
+
+    return EXIT_SUCCESS;
 
 }

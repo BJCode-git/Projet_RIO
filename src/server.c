@@ -1,10 +1,12 @@
 #include "../include/server.h"
 
 void test_data_integrity(Data *data){
-    uint16_t check = concat(data->data, data->crc);
-    if(crcVerif(check) == -1 ){
-        data->type = NAK;
+    
+    // test if the data is corrupted, correct it if possible
+    if(test_and_correct_crc(&data->data,&data->crc) == -1 ){
+        // if the data is corrupted and can't be corrected, we send a NAK
         // proxy should return the packet to the sender
+        data->type = NAK;
         memcpy(data->dest_addr, data->origin_addr, sizeof(data->dest_addr));
     }
 }
@@ -40,7 +42,7 @@ void *thread_server_send(void *arg){
 
     unlock(&shm->mutex);
 
-	return pthread_exit(NULL);
+	pthread_exit(NULL);
 }
 
 void *thread_server_read(void *arg){
@@ -55,7 +57,7 @@ void *thread_server_read(void *arg){
     unlock(&shm->mutex);
 
     clock_t last_send_time = clock();
-	while(s->shm.continue_job){
+	while(shm->continue_job){
 
         memset(&received, 0, sizeof(received));
         recv(shm->proxy_sock_fd, &received, sizeof(&received), 0);
@@ -88,12 +90,12 @@ void *thread_server_read(void *arg){
         unlock(&shm->mutex);
 	}
 
-	return pthread_exit(NULL);
+	pthread_exit(NULL);
 }
 
 void initialize_server(Server *s, int port){
 
-    port = port < 0 ? DEFAULT_PORT : port;
+    port = port < 0 ? DEFAULT_EXCHANGE_PORT_SERVER : port;
 
      /// Configure server address structure
     s->server_addr.sin_family      = AF_INET;
@@ -106,36 +108,38 @@ void initialize_server(Server *s, int port){
     s->shm.nb_data_in_buffer = 0;
     memset(s->shm.buffer, 0, BUFLEN);
 
-    s->shm.mutex = MUTEX_INITIALIZER;
-    s->shm.cond = COND_INITIALIZER;
+    pthread_mutex_init(&s->shm.mutex, NULL);
+    pthread_cond_init(&s->shm.cond, NULL);
 }
 
 void wait_for_proxy(Server *s){
     int sock; // Socket d'écoute
     CHK(sock = socket(AF_INET, SOCK_STREAM, 0));
-    CHK(bind(sock, &s->server_addr, sizeof(s->server_addr)));
-    CHK(listen(sock,SO_MAXCONN));
+    CHK(bind(sock, (struct sockaddr *) &s->server_addr, sizeof(s->server_addr)));
+    CHK(listen(sock,SOMAXCONN));
 
     int sinsize =  sizeof(s->proxy_addr);
-    CHK(s->shm.proxy_sock_fd = accept(sock, &s->proxy_addr, &sinsize));
+    CHK(s->shm.proxy_sock_fd = accept(sock, (struct sockaddr *) &s->proxy_addr, &sinsize));
     close(sock);
 }
 
-void main(int argc, char **argv){
+int main(int argc, char **argv){
+
+    int port = argc > 1 ? atoi(argv[1]) : -1;
     
     Server s;
-    initialize_server(&s);
+    initialize_server(&s,port);
     wait_for_proxy(&s);
 
-    pthread_t thread_server_send;
-    pthread_t thread_server_read;
+    pthread_t thread_send;
+    pthread_t thread_read;
 
-    pthread_create(&thread_server_send, NULL, thread_server_send, &s->shm);
-    pthread_create(&thread_server_read, NULL, thread_server_read, &s->shm);
+    pthread_create(&thread_send, NULL, &thread_server_send, &s.shm);
+    pthread_create(&thread_read, NULL, &thread_server_read, &s.shm);
 
-    pthread_join(thread_server_send, NULL);
-    pthread_join(thread_server_read, NULL);
+    pthread_join(thread_send, NULL);
+    pthread_join(thread_read, NULL);
 
-    close(s->proxy_sock_fd);
+    close(s.shm.proxy_sock_fd);
     return 0;
 }

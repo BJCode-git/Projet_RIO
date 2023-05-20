@@ -1,11 +1,13 @@
-#pragma once
+#ifndef BASE_H
+#define BASE_H
+
+#include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdnoreturn.h>
 #include <string.h>
 
-#include <pthread.h>
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
@@ -52,21 +54,23 @@ typedef struct sockaddr_in Sockaddr_in;
 
 typedef enum {
   CON, // Connection
+  CLO, // CLOse connection
   GET, // GET information about a user
+
   BOC, // Beginning of Chat
   CEX, // Chat EXchange
-  EOC, // End of Chat
+  EOC, // End Of Chat
 
   BOF, // Beginning of File
   FEX, // File EXchange
-  EOF, // End of File
-  
+  EOF, // End Of File
+
   EOJ, // End Of Job
-  //ACK = 7, // ACKnowledge
+
+  ACK, // ACKnowledge
   NAK, // Negative AcKnowledge
   INE, // Invalid Name Error
   AEU // Already Existing User
-
 }Data_type;
 
 
@@ -89,3 +93,4 @@ typedef struct{
   char name[MAX_PSEUDO_LENGTH];
 }Connection_Request;
 
+#endif
