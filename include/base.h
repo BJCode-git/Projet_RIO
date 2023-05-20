@@ -19,9 +19,9 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-#define CHK(op) do{ if((op) == -1) raler(#op);} while (0)
-#define PCHK(op) do{ if((op) == NULL) raler(#op);} while (0)
-#define TCHK(op) do{ if ((errno = (op)) > 0) raler(#op);} while (0)
+#define CHK(op) do{ if((op) == -1) {fprintf(stderr,"Erreur ligne %d, dans %s\n",__LINE__,__FILE__);raler(#op);}} while (0)
+#define PCHK(op) do{ if((op) == NULL) {fprintf(stderr,"Erreur ligne %d, dans %s\n",__LINE__,__FILE__);raler(#op);}} while (0)
+#define TCHK(op) do{ if ((errno = (op)) > 0) {fprintf(stderr,"Erreur ligne %d, dans %s\n",__LINE__,__FILE__);raler(#op);}} while (0)
 
 void raler(const char* msg){
   fprintf(stderr,"%s",msg);
@@ -41,8 +41,8 @@ void raler(const char* msg){
 #define ctimedwait(p_cond,p_mutex,p_time) TCHK(pthread_cond_timedwait(p_cond,p_mutex,p_time))
 #define csignal(p_cond) TCHK(pthread_cond_signal(p_cond))
 
-#define DEFAULT_LISTEN_PORT_PROXY htons(52000)
-#define DEFAULT_EXCHANGE_PORT_SERVER htons(52001)
+#define DEFAULT_LISTEN_PORT_PROXY htons(48020)
+#define DEFAULT_EXCHANGE_PORT_SERVER htons(48010)
 #define DEFAULT_CLIENT_PORT htons(48000)
 #define BUFLEN 1024
 #define DATALEN 2

@@ -199,8 +199,8 @@ void chat(Client *c){
 		printf("\n%s > ", c->pseudo);
 		fflush(stdout);
 
-		memset(buffer + taille, 0, BUFLEN - taille);
-		fgets(buffer + taille, BUFLEN -1 - taille, stdin);
+		memset(buffer + taille, 0, 256 - taille);
+		fgets(buffer + taille, 256 -1 - taille, stdin);
 
 		if(strncmp(buffer + taille, QUIT_CMD, sizeof(QUIT_CMD)) == 0){ 
 			c->shm.state = QUIT;
@@ -237,6 +237,7 @@ void chat(Client *c){
 
 void ftp(Client *c){
 	c->shm.state = FTP;
+	printf("Implementation incomplete\n");
 }
 
 void initialize_client(Client *c){
@@ -248,44 +249,54 @@ void initialize_client(Client *c){
 	c->shm.sock_fd = -1;
 	c->shm.out_fd = -1;
 
+	memset(&c->shm.proxy_addr, 0, sizeof(c->shm.proxy_addr));
+	memset(&c->shm.dest_addr, 0, sizeof(c->shm.dest_addr));
+	memset(&c->shm.src_addr, 0, sizeof(c->shm.src_addr));
+
 	pthread_mutex_init(&c->shm.mutex, NULL);
     pthread_cond_init(&c->shm.ecrire, NULL);
 
-	read_name(c);
 
-	
-	c->shm.proxy_addr.sin_addr.s_addr = INADDR_NONE;
-	while(INADDR_NONE == c->shm.proxy_addr.sin_addr.s_addr ){
+
+	int success = 0;
+	memset(c->shm.buffer, '\0', 255);
+	while(success == 0){
 
 		printf("Entrez l'adresse du proxy : \n");
-		fgets(c->shm.buffer, 255, stdin);
-		c->shm.proxy_addr.sin_addr.s_addr = inet_addr(c->shm.buffer);
+		fgets(c->shm.buffer, 128, stdin);
+		success = inet_aton(c->shm.buffer, &c->shm.proxy_addr.sin_addr);
 
 	}
 	
 	c->shm.proxy_addr.sin_port = -1;
 	
+	memset(c->shm.buffer, 0, 255);
 	printf("Entrez le port du proxy : \n");
 	fgets(c->shm.buffer, 7, stdin);
 
-	c->shm.proxy_addr.sin_port = htons(atoi(c->shm.buffer));
-	if(c->shm.proxy_addr.sin_port < 0 || c->shm.proxy_addr.sin_port > 65535)
+	c->shm.proxy_addr.sin_port = atoi(c->shm.buffer);
+	if(c->shm.proxy_addr.sin_port <= 0)
 		c->shm.proxy_addr.sin_port = DEFAULT_LISTEN_PORT_PROXY;
+	else
+		c->shm.proxy_addr.sin_port = htons(c->shm.proxy_addr.sin_port);
 
+	memset(c->shm.buffer, 0, 7);
 	
 	// initialize the proxy address
 	c->shm.proxy_addr.sin_family = AF_INET;
 
-	//remplit la structure sockadd pour moi
-	memset(&c->shm.src_addr, 0, sizeof(&c->shm.src_addr));
+	//remplit la structure src pour moi
+	memset(&c->shm.src_addr, 0, sizeof(c->shm.src_addr));
 	c->shm.src_addr.sin_family = AF_INET;
 	c->shm.src_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-
+	//c->shm.src_addr.sin_port = DEFAULT_CLIENT_PORT;
+	/*
 	printf("Entrez votre port d'échange : \n");
 	fgets(c->shm.buffer, 7, stdin);
 	c->shm.src_addr.sin_port = htons(atoi(c->shm.buffer));
 	if(c->shm.src_addr.sin_port < 0 || c->shm.src_addr.sin_port > 65535)
 		c->shm.src_addr.sin_port = DEFAULT_CLIENT_PORT;
+	*/
 }
 
 void connect_to_proxy(Client *c){
@@ -294,9 +305,25 @@ void connect_to_proxy(Client *c){
 	CHK(c->shm.sock_fd = socket(AF_INET, SOCK_STREAM, 0));
 
 	// connect to the proxy
-	CHK(connect(c->shm.sock_fd, (const  struct sockaddr *) &c->shm.proxy_addr, sizeof(&c->shm.proxy_addr)));
+	//CHK(bind(c->shm.sock_fd, (struct sockaddr *) &c->shm.src_addr, sizeof(struct sockaddr)));
 
+	// connect to the proxy
+	bind(c->shm.sock_fd, (struct sockaddr *) &c->shm.src_addr, sizeof(struct sockaddr));
+	int i = 0;
+	for(i = 0; i < MAX_ATTEMPTS; i++){
+		printf("Tentative de connexion au proxy...\n");
+
+		if(connect(c->shm.sock_fd, (struct sockaddr *) &c->shm.proxy_addr, sizeof(c->shm.proxy_addr))==-1){
+			perror("Erreur de connexion au proxy, nouvelle tentative dans 1 seconde...\n");
+			sleep(1);
+		}
+
+	}
+	if(i == MAX_ATTEMPTS)
+		raler("Impossible de se connecter au proxy\n");
+	
 	// send the pseudo
+	read_name(c);
 	CHK(send(c->shm.sock_fd, c->pseudo, MAX_PSEUDO_LENGTH, 0));
 }
 
@@ -376,7 +403,7 @@ int main(int argc, char **argv){
 				chat(&c);
 			break;
 			case 2:
-				c.shm.state = FTP;
+				ftp(&c);
 			break;
 			case 3:
 				continuer = 0;

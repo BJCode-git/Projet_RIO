@@ -11,95 +11,75 @@ void test_data_integrity(Data *data){
     }
 }
 
-void *thread_server_send(void *arg){
+void server_send(Server *s){
 
-	Shared_memory *shm = (Shared_memory*) arg;
+    if(s->continue_job == 0) return;
+    
+    send(s->proxy_sock_fd,&s->buffer, sizeof(s->buffer), 0);
 
-    lock(&shm->mutex);
-    shm->sender_ready = 1;
+    // if the data  is not corrupted, 
+    // we also send an DT_ACK
+    // to the sender
+    if(s->buffer.type != DT_NAK){
 
-	while(shm->continue_job){
-
-		cwait(&shm->cond,&shm->mutex);
-
-        if(shm->continue_job == 0) break;
-        
-        CHK(send(shm->proxy_sock_fd,&shm->buffer, sizeof(Data), 0));
-
-        if(shm->buffer.type != DT_NAK){
-            shm->buffer.type = DT_ACK;
-            memcpy(&shm->buffer.dest_addr, &shm->buffer.origin_addr, sizeof(shm->buffer.dest_addr));
-            CHK(send(shm->proxy_sock_fd,&shm->buffer, sizeof(shm->buffer), 0));
-        }
-
-        // tell that the data has been sent
-        csignal(&shm->cond);
+        s->buffer.type = DT_ACK;
+        memcpy(&s->buffer.dest_addr, &s->buffer.origin_addr, sizeof(s->buffer.dest_addr));
+        send(s->proxy_sock_fd,&s->buffer, sizeof(s->buffer), 0);
     }
 
-    unlock(&shm->mutex);
-
-	pthread_exit(NULL);
 }
 
-void *thread_server_read(void *arg){
-    Shared_memory *shm = (Shared_memory*) arg;
+void server_read(Server *s){
+    
+    memset(&s->buffer, 0, sizeof(s->buffer));
+    recv(s->proxy_sock_fd, &s->buffer, sizeof(s->buffer), 0);
 
-    // wait for the sender to be ready
-    lock(&shm->mutex);
-    while(shm->sender_ready!=1){
-        cwait(&shm->cond, &shm->mutex);
-    }
+    // test integrity of the data
+    test_data_integrity(&s->buffer);
 
-	while(shm->continue_job){
-
-        memset(&shm->buffer, 0, sizeof(shm->buffer));
-        recv(shm->proxy_sock_fd, &shm->buffer, sizeof(&shm->buffer), 0);
-
-        // test integrity of the data
-        test_data_integrity(&shm->buffer);
-
-        // test if the proxy is sending an DT_EOJ
-        if(shm->buffer.type == DT_EOJ)
-            shm->continue_job = 0;
-
-        // send data to the proxy
-        csignal(&shm->cond);
-        // wait for the data to be sent
-        cwait(&shm->cond, &shm->mutex);
-
-	}
-
-    unlock(&shm->mutex);
-	pthread_exit(NULL);
+    // test if the proxy is sending an DT_EOJ
+    if(s->buffer.type == DT_EOJ)
+        s->continue_job = 0;
 }
 
 void initialize_server(Server *s, int port){
+   
+    s->continue_job = 1;
+    s->proxy_sock_fd = -1;
 
-    port = port < 0 ? DEFAULT_EXCHANGE_PORT_SERVER : port;
+    port = port < 0 ? DEFAULT_EXCHANGE_PORT_SERVER : htons(port);
 
+    memset(&s->server_addr, 0, sizeof(s->server_addr));
      /// Configure server address structure
     s->server_addr.sin_family      = AF_INET;
     s->server_addr.sin_port        = port;
     s->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    /// Initialize Shared memory
-    s->shm.continue_job = 1;
-    s->shm.sender_ready = 0;
-    memset(&s->shm.buffer, 0, sizeof(s->shm.buffer));
+    printf("Addresse d'écoute serveur : %s\n", inet_ntoa(s->server_addr.sin_addr));
+    printf("Port d'écoute du serveur : %d\n", ntohs(s->server_addr.sin_port));
 
-    pthread_mutex_init(&s->shm.mutex, NULL);
-    pthread_cond_init(&s->shm.cond, NULL);
+    /// Configure proxy address structure
+    memset(&s->proxy_addr, 0, sizeof(s->proxy_addr));
+
+    s->proxy_addr.sin_family      = AF_INET;
 }
 
 void wait_for_proxy(Server *s){
-    int sock; // Socket d'écoute
+    int sock; 
+
     CHK(sock = socket(AF_INET, SOCK_STREAM, 0));
     CHK(bind(sock, (struct sockaddr *) &s->server_addr, sizeof(s->server_addr)));
     CHK(listen(sock,SOMAXCONN));
 
-    int sinsize =  sizeof(s->proxy_addr);
-    CHK(s->shm.proxy_sock_fd = accept(sock, (struct sockaddr *) &s->proxy_addr, &sinsize));
+    printf("En attente de connexion du proxy...\n");
+
+    socklen_t sinsize =  sizeof(s->proxy_addr);
+    CHK(s->proxy_sock_fd = accept(sock, (struct sockaddr *) &s->proxy_addr, &sinsize));
     close(sock);
+
+    printf("Connexion du proxy réussie\n");
+    printf("Proxy connecté %s:%d\n", inet_ntoa(s->proxy_addr.sin_addr),ntohs(s->proxy_addr.sin_port));
+    fflush(stdout);
 }
 
 int main(int argc, char **argv){
@@ -107,18 +87,24 @@ int main(int argc, char **argv){
     int port = argc > 1 ? atoi(argv[1]) : -1;
     
     Server s;
+
+    printf("Initialisation du serveur ...\n");
     initialize_server(&s,port);
+    printf("Initialisation du serveur réussie\n");
+
     wait_for_proxy(&s);
 
-    pthread_t thread_send;
-    pthread_t thread_read;
+  
+    printf("Communication du serveur sur %s:%d \n", inet_ntoa(s.server_addr.sin_addr),ntohs(s.server_addr.sin_port));
 
-    pthread_create(&thread_send, NULL, &thread_server_send, &s.shm);
-    pthread_create(&thread_read, NULL, &thread_server_read, &s.shm);
+    while(s.continue_job == 1){
 
-    pthread_join(thread_send, NULL);
-    pthread_join(thread_read, NULL);
+        server_read(&s);
+        server_send(&s);
+        
+    }
 
-    close(s.shm.proxy_sock_fd);
+
+    close(s.proxy_sock_fd);
     return 0;
 }
