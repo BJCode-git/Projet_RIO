@@ -3,7 +3,8 @@
 void bruiter(uint8_t *m){
 
     int bit = rand() % 8; //choisit un bit a modifier
-    m = change_nth_bit(bit, m); //effectue la mod
+    uint16_t msg = *m; //cast le uint8_t en uint16_t
+    *m = chg_nth_bit(bit, msg); //effectue la mod
 }
 
 

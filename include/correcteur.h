@@ -2,6 +2,7 @@
 #define CORRECTEUR_H
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #define WORD_SIZE 8
 #define POLYNOMIAL 0xD5
@@ -132,4 +133,5 @@ int hamming_distance(uint16_t m);
  * @return -1 si il y a une erreur, 0 sinon
  */
 int test_and_correct_crc(uint8_t *m, uint8_t *crc);
+
 #endif

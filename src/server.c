@@ -4,10 +4,10 @@ void test_data_integrity(Data *data){
     
     // test if the data is corrupted, correct it if possible
     if(test_and_correct_crc(&data->data,&data->crc) == -1 ){
-        // if the data is corrupted and can't be corrected, we send a NAK
+        // if the data is corrupted and can't be corrected, we send a DT_NAK
         // proxy should return the packet to the sender
-        data->type = NAK;
-        memcpy(data->dest_addr, data->origin_addr, sizeof(data->dest_addr));
+        data->type = DT_NAK;
+        memcpy(&data->dest_addr, &data->origin_addr, sizeof(data->dest_addr));
     }
 }
 
@@ -20,21 +20,17 @@ void *thread_server_send(void *arg){
 
 	while(shm->continue_job){
 
-		wait(&shm->cond,&shm->mutex);
+		cwait(&shm->cond,&shm->mutex);
 
         if(shm->continue_job == 0) break;
-        if(shm->nb_data_in_buffer == 0) continue;
+        
+        CHK(send(shm->proxy_sock_fd,&shm->buffer, sizeof(Data), 0));
 
-        CHK(send(shm->proxy_sock_fd, shm->buffer, shm->nb_data_in_buffer*sizeof(Data), 0));
-
-        // send ACK to the sender
-        for(int i = 0; i < shm->nb_data_in_buffer; i++){
-            shm->buffer[i]->type = ACK;
-            memcpy(data->dest_addr, data->origin_addr, sizeof(data->dest_addr));
+        if(shm->buffer.type != DT_NAK){
+            shm->buffer.type = DT_ACK;
+            memcpy(&shm->buffer.dest_addr, &shm->buffer.origin_addr, sizeof(shm->buffer.dest_addr));
+            CHK(send(shm->proxy_sock_fd,&shm->buffer, sizeof(shm->buffer), 0));
         }
-        CHK(send(shm->proxy_sock_fd, shm->buffer, shm->nb_data_in_buffer*sizeof(Data), 0));
-
-        shm->nb_data_in_buffer = 0;
 
         // tell that the data has been sent
         csignal(&shm->cond);
@@ -47,49 +43,33 @@ void *thread_server_send(void *arg){
 
 void *thread_server_read(void *arg){
     Shared_memory *shm = (Shared_memory*) arg;
-    Data received;
 
     // wait for the sender to be ready
     lock(&shm->mutex);
     while(shm->sender_ready!=1){
         cwait(&shm->cond, &shm->mutex);
     }
-    unlock(&shm->mutex);
 
-    clock_t last_send_time = clock();
 	while(shm->continue_job){
 
-        memset(&received, 0, sizeof(received));
-        recv(shm->proxy_sock_fd, &received, sizeof(&received), 0);
+        memset(&shm->buffer, 0, sizeof(shm->buffer));
+        recv(shm->proxy_sock_fd, &shm->buffer, sizeof(&shm->buffer), 0);
 
         // test integrity of the data
-        test_data_integrity(&received);
+        test_data_integrity(&shm->buffer);
 
-        // test if the proxy is sending an EOJ
-        if(received.type == EOJ){
-            lock(&shm->mutex);
+        // test if the proxy is sending an DT_EOJ
+        if(shm->buffer.type == DT_EOJ)
             shm->continue_job = 0;
-            csignal(&shm->cond);
-            unlock(&shm->mutex);
-            break;
-        }
 
-        lock(&shm->mutex);
+        // send data to the proxy
+        csignal(&shm->cond);
+        // wait for the data to be sent
+        cwait(&shm->cond, &shm->mutex);
 
-        memcpy(shm->buffer+shm->nb_data_in_buffer, &received, sizeof(received));
-        shm->nb_data_in_buffer = shm->nb_data_in_buffer == BUFLEN ? BUFLEN : shm->nb_data_in_buffer + 1;
-
-        // if the buffer is full or the timeout is reached, send data to the proxy
-        if(shm->nb_data_in_buffer == BUFLEN || last_send_time + 10*TIMEOUT_MS < clock()  ){
-            last_send_time = clock();
-            csignal(&shm->cond);
-            // wait for the data to be sent
-            cwait(&shm->cond, &shm->mutex);
-        }
-
-        unlock(&shm->mutex);
 	}
 
+    unlock(&shm->mutex);
 	pthread_exit(NULL);
 }
 
@@ -105,8 +85,7 @@ void initialize_server(Server *s, int port){
     /// Initialize Shared memory
     s->shm.continue_job = 1;
     s->shm.sender_ready = 0;
-    s->shm.nb_data_in_buffer = 0;
-    memset(s->shm.buffer, 0, BUFLEN);
+    memset(&s->shm.buffer, 0, sizeof(s->shm.buffer));
 
     pthread_mutex_init(&s->shm.mutex, NULL);
     pthread_cond_init(&s->shm.cond, NULL);

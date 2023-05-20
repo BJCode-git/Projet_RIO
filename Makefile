@@ -21,7 +21,7 @@ server: include/base.h src/correcteur.c src/server.c
 client: include/base.h src/correcteur.c src/client.c
 	$(CC) -o bin/$@ $^ -g $(LIBS)
 
-proxy: include/base.h src/proxy.c
+proxy: include/base.h src/correcteur.c src/proxy.c
 	$(CC) -o bin/$@ $^ -g $(LIBS)
 
 correcteur: src/correcteur.c
