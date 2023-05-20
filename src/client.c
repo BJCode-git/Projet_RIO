@@ -3,7 +3,8 @@
 void read_name(Client *c){
 	// read the name from stdin
 	printf("Entrez votre pseudo : \n");
-	fgets(c->pseudo, MAX_PSEUDO_LENGTH, stdin);
+	memset(c->pseudo, 0, MAX_PSEUDO_LENGTH);
+	fgets(c->pseudo, MAX_PSEUDO_LENGTH-1, stdin);
 }
 
 void save_file(Shared_memory *shm){

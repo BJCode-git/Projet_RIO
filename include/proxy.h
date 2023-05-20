@@ -9,33 +9,36 @@ typedef struct{
 
 typedef struct{
   int sock_fd;
-  Sockaddr_in Addr;
+  int server_fd;
+  Sockaddr_in addr;
   char name[MAX_PSEUDO_LENGTH];
 }Client;
 
-typedef struct {
+typedef struct{
+  int sock_listen_fd;
+  Sockaddr_in proxy_addr;
+  Thread thread_client[BUFLEN];
+  Thread thread_server[BUFLEN];
+
+  Client clients[BUFLEN];
+  int nb_clients;
+  Mutex mutex_clients;
 
   Server servers[BUFLEN];
-  Client clients[BUFLEN];
-
-  Data receive_buffer[BUFLEN];
-  Data send_buffer[BUFLEN];
-
-  Mutex *receive_mutex;
-  Mutex *send_mutex;
-
-  int nb_clients;
   int nb_serveurs;
-  int nb_mutex;
+  Mutex mutex_servers;
 
-}Shared_memory;
+}Proxy;
 
 
+Client* find_client(Shared_memory *shm, char *pseudo);
+int get_server_fd(Shared_memory *shm);
 
-User *get_user(Shared_memory *shm, char *pseudo);
+void *thread_client(void *arg);
+void *thread_server(void *arg);
 
-void *thread_server_TCP(void *arg);
+void initialize_proxy(Server *s, int argc, char **argv);
 
-void initialize_server(Server *s, int port);
+void accept_new_client(int listen_fd);
 
 //void *server(int argc, char **argv);

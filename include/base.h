@@ -51,8 +51,8 @@ void raler(const char* msg){
 typedef struct sockaddr_in Sockaddr_in;
 
 typedef enum {
-  CON = 0, // connect to the proxy
-  GET, // get ip from name 
+  CON, // Connection
+  GET, // GET information about a user
   BOC, // Beginning of Chat
   CEX, // Chat EXchange
   EOC, // End of Chat
@@ -78,4 +78,14 @@ typedef struct{
   uint8_t data;
   uint8_t crc;
 }Data;
+
+typedef struct{
+  Data_type type;
+  char name[MAX_PSEUDO_LENGTH];
+}Connection_Request;
+
+typedef struct{
+  Data_type type;
+  char name[MAX_PSEUDO_LENGTH];
+}Connection_Request;
 

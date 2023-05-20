@@ -2,19 +2,18 @@
 #include "base.h"
 #include "correcteur.h"
 
-#define PSEUDO_CMD "/pseudo"
 #define SEND_TO_CMD "/sendto"
 #define P2P_CMD "/p2p"
-#define HELP_CMD "/help"
 #define CHAT_CMD "/chat"
 #define FILE_CMD "/file"
 #define CLOSE_CMD "/close"
 #define QUIT_CMD "/quit"
+#define HELP_CMD "/help"
 
 typedef enum {
 	UNDEFINED,
 	CHAT,
-	FTP
+	FTP,
 	//SENDING_FILE,
 	//RECEIVING_FILE,
 	QUIT
