@@ -4,8 +4,10 @@ void test_data_integrity(Data *data){
     
     // test if the data is corrupted, correct it if possible
     if(test_and_correct_crc(&data->data,&data->crc) == -1 ){
+        printf("\t Correction impossible\n");
         // if the data is corrupted and can't be corrected, we send a DT_NAK
         // proxy should return the packet to the sender
+
         data->type = DT_NAK;
         memcpy(&data->dest_addr, &data->origin_addr, sizeof(data->dest_addr));
     }
@@ -15,7 +17,9 @@ void server_send(Server *s){
 
     if(s->continue_job == 0) return;
     
-    send(s->proxy_sock_fd,&s->buffer, sizeof(s->buffer), 0);
+    send(s->proxy_sock_fd,&s->buffer, sizeof(Data), 0);
+    printf("Paquet envoyé au proxy\n");
+    print_data(&s->buffer);
 
     // if the data  is not corrupted, 
     // we also send an DT_ACK
@@ -23,8 +27,10 @@ void server_send(Server *s){
     if(s->buffer.type != DT_NAK){
 
         s->buffer.type = DT_ACK;
-        memcpy(&s->buffer.dest_addr, &s->buffer.origin_addr, sizeof(s->buffer.dest_addr));
+        memcpy(&s->buffer.dest_addr, &s->buffer.origin_addr, sizeof(s->buffer.origin_addr));
         send(s->proxy_sock_fd,&s->buffer, sizeof(s->buffer), 0);
+        printf("Paquet ACK envoyé au proxy\n");
+        print_data(&s->buffer);
     }
 
 }
@@ -32,14 +38,15 @@ void server_send(Server *s){
 void server_read(Server *s){
     
     memset(&s->buffer, 0, sizeof(s->buffer));
-    recv(s->proxy_sock_fd, &s->buffer, sizeof(s->buffer), 0);
+    recv(s->proxy_sock_fd, &s->buffer, sizeof(Data), 0);
+    printf("Paquet reçu du proxy\n");
     print_data(&s->buffer);
 
     // test integrity of the data
     test_data_integrity(&s->buffer);
 
     // test if the proxy is sending an DT_EOJ
-    if(s->buffer.type == DT_EOJ)
+    if(s->buffer.type == DT_EOJ || s->buffer.type == DT_CLO)
         s->continue_job = 0;
 }
 

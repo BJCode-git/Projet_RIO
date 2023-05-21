@@ -37,8 +37,9 @@ typedef struct {
 }Shared_memory;
 
 typedef struct {
-	Sockaddr_in dest_addr;
+	Sockaddr_in src_addr;
 	Sockaddr_in proxy_addr;
+	Sockaddr_in dest_addr;
 
 	Shared_memory shm;
 	char pseudo[MAX_PSEUDO_LENGTH];
@@ -52,7 +53,7 @@ void *thread_client_resend(void *arg);
 void chat(Client *c);
 void ftp(Client *c);
 
-void initialize_client(Client *c, char *ip_addr, int port);
+void initialize_client(Client *c, char *ip_addr, int port_proxy, int port_utilisateur);
 void connect_to_proxy(Client *c);
 
 void get_dest_by_name(Client *c);

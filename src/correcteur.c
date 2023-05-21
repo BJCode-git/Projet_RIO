@@ -159,6 +159,7 @@ int test_and_correct_crc(uint8_t *m, uint8_t *crc){
     if (crcVerif(message) == 0) return 0;
     
     // if there is an error, we try to correct it
+    printf("\t Erreur dans le message\n");
     
     int error_index = crc_error_amount(message);
 

@@ -39,15 +39,38 @@ void raler(const char* msg){
 #define ctimedwait(p_cond,p_mutex,p_time) TCHK(pthread_cond_timedwait(p_cond,p_mutex,p_time))
 #define csignal(p_cond) TCHK(pthread_cond_signal(p_cond))
 
-#define DEFAULT_LISTEN_PORT_PROXY htons(48020)
-#define DEFAULT_EXCHANGE_PORT_SERVER htons(48010)
-#define DEFAULT_CLIENT_PORT htons(48000)
-#define BUFLEN 1024
-#define DATALEN 2
-#define MAX_PSEUDO_LENGTH 30
-#define MAX_FD 1024
-#define MAX_ATTEMPTS 3
-#define TIMEOUT_MS 133 
+
+#ifndef DEFAULT_LISTEN_PORT_PROXY
+    #define DEFAULT_LISTEN_PORT_PROXY htons(48020)
+#endif
+
+#ifndef DEFAULT_EXCHANGE_PORT_SERVER
+    #define DEFAULT_EXCHANGE_PORT_SERVER htons(48010)
+#endif
+
+#ifndef DEFAULT_CLIENT_PORT
+    #define DEFAULT_CLIENT_PORT htons(48000)
+#endif
+
+#ifndef BUFLEN
+    #define BUFLEN 1024
+#endif
+
+#ifndef DATALEN
+    #define DATALEN 2
+#endif
+
+#ifndef MAX_PSEUDO_LENGTH
+    #define MAX_PSEUDO_LENGTH 30
+#endif
+
+#ifndef MAX_ATTEMPTS
+    #define MAX_ATTEMPTS 3
+#endif
+
+#ifndef TIMEOUT_MS
+    #define TIMEOUT_MS 133 
+#endif
 
 typedef struct sockaddr_in Sockaddr_in;
 
@@ -83,14 +106,31 @@ typedef struct{
   uint8_t crc;
 }Data;
 
+char* DT_TEXT[]={
+  "DT_CLO", 
+  "DT_CON", 
+  "DT_GET", 
+  "DT_BOC", 
+  "DT_CEX", 
+  "DT_EOC", 
+  "DT_BOF", 
+  "DT_FEX", 
+  "DT_EOF", 
+  "DT_EOJ", 
+  "DT_ACK", 
+  "DT_NAK", 
+  "DT_INE", 
+  "DT_AEU" 
+};
+
 void print_data(Data *data){
-  printf("Data :\n");
-  printf("\t Origin : %s:%d\n",inet_ntoa(data->origin_addr.sin_addr),ntohs(data->origin_addr.sin_port));
-  printf("\t Dest : %s:%d\n",inet_ntoa(data->dest_addr.sin_addr),ntohs(data->dest_addr.sin_port));
-  printf("\t Type : %d\n",data->type);
-  printf("\t Id : %d\n",data->id);
-  printf("\t Data : %c\n",(char) data->data);
-  printf("\t Crc : %d\n",data->crc);
+  printf("\t Data :\n");
+  printf("\t\t Origin : %s:%d",inet_ntoa(data->origin_addr.sin_addr),ntohs(data->origin_addr.sin_port));
+  printf(" Dest : %s:%d\n",inet_ntoa(data->dest_addr.sin_addr),ntohs(data->dest_addr.sin_port));
+  printf("\t\t Type : %s",DT_TEXT[data->type]);
+  printf(" Id : %d\n",data->id);
+  printf("\t\t Data : %d", data->data);
+  printf(" Crc : %d\n",data->crc);
 }
 
 #endif

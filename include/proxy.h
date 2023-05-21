@@ -9,31 +9,32 @@ typedef struct Shared_memory Shared_memory;
 typedef struct{
 
   int server_fd;
-  Sockaddr_in addr;
   int load;
-  Shared_memory *shm;
+  Data data;
+  Sockaddr_in addr;
+  Mutex server_mutex;
+  struct Shared_memory *shm;
 
 }Server;
 
 typedef struct{
 
   int sock_fd;
-  Server *server;
+  Data data;
   Sockaddr_in addr;
+  Mutex client_mutex;
+  Server *server;
   char name[MAX_PSEUDO_LENGTH];
-  Shared_memory *shm;
+  struct Shared_memory *shm;
 
 }Client;
 
 struct Shared_memory{
   Client clients[BUFLEN];
   int nb_clients;
-  Mutex mutex_clients;
-
+ 
   Server servers[BUFLEN];
   int nb_servers;
-  Mutex mutex_servers;
-
 };
 
 typedef struct{

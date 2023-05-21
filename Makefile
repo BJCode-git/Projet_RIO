@@ -12,6 +12,7 @@ BIN = $(PROG)
 create_bin_dir:
 	mkdir -p object
 	mkdir -p bin
+	mkdir -p docs
 
 all: create_bin_dir server client proxy correcteur docs
 

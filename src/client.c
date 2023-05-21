@@ -3,8 +3,13 @@
 void read_name(Client *c){
 	// read the name from stdin
 	printf("Entrez votre pseudo : \n");
-	memset(c->pseudo, 0, MAX_PSEUDO_LENGTH);
+	memset(c->pseudo, 0, MAX_PSEUDO_LENGTH-1);
 	fgets(c->pseudo, MAX_PSEUDO_LENGTH-1, stdin);
+
+	int len = strlen(c->pseudo);
+	if (len > 0 && c->pseudo[--len] == '\n') 
+    	c->pseudo[len] = '\0';
+
 }
 
 void save_file(Shared_memory *shm){
@@ -29,7 +34,9 @@ void *thread_client_receive(void *arg){
 	while(shm->state != QUIT){
 
 		memset(&received, 0, sizeof(received));
-		recv(shm->sock_fd, &received, sizeof(&received), 0);
+		CHK(recv(shm->sock_fd, &received, sizeof(&received), 0));
+
+		printf("Received : ");
 		print_data(&received);
 		
 		lock(&shm->mutex);
@@ -45,11 +52,6 @@ void *thread_client_receive(void *arg){
 				if(shm->state != CHAT) break;
 				shm->out_fd = -1;
 				shm->state = UNDEFINED;
-			break;
-
-			// normally, the client should not receive these packets
-			// they are here for security
-			case DT_EOJ: // End Of Job
 			break;
 
 			case DT_BOF: // Beginning of File
@@ -84,7 +86,6 @@ void *thread_client_receive(void *arg){
 			default:
 				if(shm->out_fd >=0 && (received.type == DT_CEX || received.type == DT_FEX  ) ){
 					write(shm->out_fd, &received.data, sizeof(received.data));
-					csignal(&shm->ecrire);
 				}
 		}
 		unlock(&shm->mutex);
@@ -105,10 +106,12 @@ void *thread_client_send(void *arg){
 		
 		// send data
 		shm->can_write = 0;
+		printf("Envoi de données\n");
 		for(int i=shm->ack_until; i<shm->size; i++){
 			shm->data.id = i;
 			shm->data.type = DT_CEX;
 			shm->data.data = (uint8_t) shm->buffer[i];
+			shm->data.crc = crcGeneration(shm->data.data);
 			CHK(send(shm->sock_fd, &shm->data, sizeof(Data), 0));
 		}
 		printf("Message envoyé\n");
@@ -246,29 +249,38 @@ void ftp(Client *c){
 	printf("Implementation incomplete\n");
 }
 
-void initialize_client(Client *c, char *ip_addr, int port){
-
+void initialize_client(Client *c, char *ip_addr, int port_proxy, int port_utilisateur){
 
 	memset(c, 0, sizeof(Client));
+	memset(&c->proxy_addr, 0, sizeof(Sockaddr_in));
+	memset(&c->dest_addr, 0, sizeof(Sockaddr_in));
+	memset(&c->src_addr, 0, sizeof(Sockaddr_in));
+	memset(c->pseudo, 0, MAX_PSEUDO_LENGTH);
 
-	c->shm.state = UNDEFINED;
-	c->shm.out_fd = -1;
+	memset(&c->shm, 0, sizeof(Shared_memory));
+	memset(c->shm.buffer, 0, 256);
+	c->shm.data.type = DT_CON;
 	c->shm.sock_fd = -1;
+	c->shm.out_fd = -1;
+	c->shm.state = UNDEFINED;
+	c->shm.ack_until = 0;
+	c->shm.size = 0;
+	c->shm.can_write = 0;
 
 	pthread_mutex_init(&c->shm.mutex, NULL);
 	pthread_cond_init(&c->shm.ecrire, NULL);
 
 	c->proxy_addr.sin_family = AF_INET;
-	c->proxy_addr.sin_port = port > 0 ? htons(port) : DEFAULT_LISTEN_PORT_PROXY;
+	c->proxy_addr.sin_port = port_proxy > 0 ? htons(port_proxy) : DEFAULT_LISTEN_PORT_PROXY;
 
 	if( inet_aton(ip_addr, &c->proxy_addr.sin_addr) ==0 ){
 		fprintf(stderr, "Erreur lors de la conversion de l'adresse IP\n");
 		exit(EXIT_FAILURE);
 	}
 	
-
-	c->dest_addr.sin_family = AF_INET;
-	c->dest_addr.sin_port = DEFAULT_CLIENT_PORT;
+	c->src_addr.sin_family = AF_INET;
+	c->src_addr.sin_port = port_utilisateur > 0 ? htons(port_utilisateur) : DEFAULT_CLIENT_PORT;
+	c->src_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 }
 
 void connect_to_proxy(Client *c){
@@ -277,6 +289,7 @@ void connect_to_proxy(Client *c){
 	CHK(c->shm.sock_fd = socket(AF_INET, SOCK_STREAM, 0));
 	
 	// connect to the proxy
+	CHK(bind(c->shm.sock_fd, (struct sockaddr *) &c->src_addr, sizeof(c->src_addr)));
 	int i;
 	for(i = 0; i < MAX_ATTEMPTS; i++){
 		printf("Tentative de connexion au proxy...\n");
@@ -287,7 +300,6 @@ void connect_to_proxy(Client *c){
 		}
 		else
 			break;
-		
 	}
 
 	if(i == MAX_ATTEMPTS){
@@ -295,11 +307,16 @@ void connect_to_proxy(Client *c){
 		raler("Impossible de se connecter au proxy\n");
 	}
 
-	printf("Connexion au proxy reussie\n");
-	
-	// send the pseudo
-	read_name(c);
-	CHK(send(c->shm.sock_fd, c->pseudo, MAX_PSEUDO_LENGTH, 0));
+	printf("Connexion au proxy reussie\n");	
+}
+
+void configure_data(Client *c){
+	lock(&c->shm.mutex);
+		// don't care, the proxy will fill it with the right value
+		c->shm.data.type = DT_CON;
+		//memset(&c->shm.data.origin_addr, 0, sizeof(c->shm.data.origin_addr));
+		memcpy(&c->shm.data.dest_addr, &c->dest_addr, sizeof(c->dest_addr));
+	unlock(&c->shm.mutex);
 }
 
 void get_receiver(Client *c){
@@ -310,6 +327,9 @@ void get_receiver(Client *c){
 		printf("Entrez le pseudo ou l'adresse ip du destinataire : \n");
 		memset(c->shm.buffer, 0, 128);
 		PCHK(fgets(c->shm.buffer, 128, stdin));
+		int len = strlen(c->pseudo);
+		if (len > 0 && c->pseudo[--len] == '\n') 
+    		c->pseudo[len] = '\0';
 
 		if( inet_aton(c->shm.buffer, &c->dest_addr.sin_addr)!=0 ){
 
@@ -328,23 +348,26 @@ void get_receiver(Client *c){
 		else{
 			// send the pseudo
 			
-			memset(&c->shm.data, 0, sizeof(c->shm.data));
-			c->shm.data.type = DT_GET;
+			configure_data(c);
 
 			// send query to the proxy
-			CHK(send(c->shm.sock_fd,&c->shm.data,sizeof(c->shm.data), 0));
+			c->shm.data.type = DT_GET;
+			CHK(send(c->shm.sock_fd,&c->shm.data,sizeof(Data), 0));
+			
 
 			// send the pseudo
+			memset(c->shm.buffer, 0, MAX_PSEUDO_LENGTH);
 			CHK(send(c->shm.sock_fd,c->shm.buffer, MAX_PSEUDO_LENGTH, 0));
-
+			
 			// receive the answer
-			CHK(recv(c->shm.sock_fd, &c->shm.data, sizeof(&c->shm.data) , 0));
+			CHK(recv(c->shm.sock_fd, &c->shm.data, sizeof(Data) , 0));
 
 			if(c->shm.data.type == DT_INE)
 				printf("Utilisateur non trouvé \n");
 			else{
 				printf("Utilisateur trouvé \n");
 				memcpy(&c->dest_addr, &c->shm.data.origin_addr, sizeof(c->dest_addr));
+				printf("Utilisateur %s trouvé Adresse %s:%d\n",c->shm.buffer,inet_ntoa(c->dest_addr.sin_addr),ntohs(c->dest_addr.sin_port));
 				continuer = 0;
 			}
 		}
@@ -352,23 +375,42 @@ void get_receiver(Client *c){
 	}
 }
 
-void configure_data(Client *c){
-	memset(&c->shm.data, 0, sizeof(c->shm.data));
-	// don't care, the proxy will fill it with the right value
-	memset(&c->shm.data.origin_addr, 0, sizeof(c->shm.data.origin_addr));
+void auth(Client *c){
+
+	
 	memcpy(&c->shm.data.dest_addr, &c->dest_addr, sizeof(c->dest_addr));
+	c->shm.data.type = DT_CON;
+
+	// indicate to the proxy that want to connect for the first time
+	lock(&c->shm.mutex);
+		CHK(send(c->shm.sock_fd, &c->shm.data,sizeof(Data), 0));
+	unlock(&c->shm.mutex);
+	printf("Envoyé : \n");
+	print_data(&c->shm.data);
+	// send the pseudo to the proxy
+
+	lock(&c->shm.mutex);
+		read_name(c);
+		CHK(send(c->shm.sock_fd, c->pseudo, MAX_PSEUDO_LENGTH, 0));
+	unlock(&c->shm.mutex);
+
+	// on pourrait recevoir la réponse et voir si le pseudo existe déjà
+	// mais on va faire simple et autoriser plusieurs connexions avec le même pseudo
 }
 
 int main(int argc, char **argv){
 
 	if(argc < 2){
-		printf("Usage : %s <adresse proxy> <port proxy>\n", argv[0]);
+		printf("Usage : %s <adresse proxy> (port proxy) (port client) \n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
 
 	Client c;
-	initialize_client(&c, argv[1], atoi(argv[2]));
+	int port_proxy = argc > 2 ? atoi(argv[2]) : -1;
+	int port_client = argc > 2 ? atoi(argv[2]) : -1;
+	initialize_client(&c, argv[1], port_proxy,port_client);
 	connect_to_proxy(&c);
+	auth(&c);
 
 	int continuer = 1;
 	while(continuer){
