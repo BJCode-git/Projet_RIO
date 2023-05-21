@@ -1,3 +1,0 @@
-FTP
-user
-quit

@@ -1,0 +1,120 @@
+\hypertarget{client_8c}{}\doxysection{src/client.c File Reference}
+\label{client_8c}\index{src/client.c@{src/client.c}}
+{\ttfamily \#include \char`\"{}../include/client.\+h\char`\"{}}\newline
+Include dependency graph for client.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=171pt]{client_8c__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{client_8c_a2efce3fe4804a3d69e2b2b75b11ec1bf}{read\+\_\+name}} (Client $\ast$c)
+\item 
+void \mbox{\hyperlink{client_8c_ab153695e33a259f3c897e9e54677cffa}{save\+\_\+file}} (Shared\+\_\+memory $\ast$shm)
+\item 
+void $\ast$ \mbox{\hyperlink{client_8c_a8019f62abe69c61643c6d3668e928c52}{thread\+\_\+client\+\_\+receive}} (void $\ast$arg)
+\item 
+void $\ast$ \mbox{\hyperlink{client_8c_a1513faa5b167efd9ddbf578502a276bb}{thread\+\_\+client\+\_\+send}} (void $\ast$arg)
+\item 
+void $\ast$ \mbox{\hyperlink{client_8c_a638fd95d639f91564bd589f871ca52aa}{thread\+\_\+client\+\_\+resend}} (void $\ast$arg)
+\item 
+void \mbox{\hyperlink{client_8c_a605ceea0cff73e2658275f21429676f0}{chat}} (Client $\ast$c)
+\item 
+void \mbox{\hyperlink{client_8c_ac516e1603bbfd5bd1a221a16ee943f2e}{ftp}} (Client $\ast$c)
+\item 
+void \mbox{\hyperlink{client_8c_a64392206139681efed8b35371c64dfd8}{initialize\+\_\+client}} (Client $\ast$c, char $\ast$ip\+\_\+addr, int port\+\_\+proxy, int port\+\_\+utilisateur)
+\item 
+void \mbox{\hyperlink{client_8c_a44efeca163f74db5049207a3daac1592}{connect\+\_\+to\+\_\+proxy}} (Client $\ast$c)
+\item 
+void \mbox{\hyperlink{client_8c_a2c8d7f5a49a126e7487fbed02ba11a7e}{configure\+\_\+data}} (Client $\ast$c)
+\item 
+void \mbox{\hyperlink{client_8c_aea921d2ab0a6d2e9838daebf6ce94ab5}{get\+\_\+receiver}} (Client $\ast$c)
+\item 
+void \mbox{\hyperlink{client_8c_a38be9080d79b96a9fad6908716beb108}{auth}} (Client $\ast$c)
+\item 
+int \mbox{\hyperlink{client_8c_a3c04138a5bfe5d72780bb7e82a18e627}{main}} (int argc, char $\ast$$\ast$argv)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{client_8c_a38be9080d79b96a9fad6908716beb108}\label{client_8c_a38be9080d79b96a9fad6908716beb108}} 
+\index{client.c@{client.c}!auth@{auth}}
+\index{auth@{auth}!client.c@{client.c}}
+\doxysubsubsection{\texorpdfstring{auth()}{auth()}}
+{\footnotesize\ttfamily void auth (\begin{DoxyParamCaption}\item[{Client $\ast$}]{c }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{client_8c_a605ceea0cff73e2658275f21429676f0}\label{client_8c_a605ceea0cff73e2658275f21429676f0}} 
+\index{client.c@{client.c}!chat@{chat}}
+\index{chat@{chat}!client.c@{client.c}}
+\doxysubsubsection{\texorpdfstring{chat()}{chat()}}
+{\footnotesize\ttfamily void chat (\begin{DoxyParamCaption}\item[{Client $\ast$}]{c }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{client_8c_a2c8d7f5a49a126e7487fbed02ba11a7e}\label{client_8c_a2c8d7f5a49a126e7487fbed02ba11a7e}} 
+\index{client.c@{client.c}!configure\_data@{configure\_data}}
+\index{configure\_data@{configure\_data}!client.c@{client.c}}
+\doxysubsubsection{\texorpdfstring{configure\_data()}{configure\_data()}}
+{\footnotesize\ttfamily void configure\+\_\+data (\begin{DoxyParamCaption}\item[{Client $\ast$}]{c }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{client_8c_a44efeca163f74db5049207a3daac1592}\label{client_8c_a44efeca163f74db5049207a3daac1592}} 
+\index{client.c@{client.c}!connect\_to\_proxy@{connect\_to\_proxy}}
+\index{connect\_to\_proxy@{connect\_to\_proxy}!client.c@{client.c}}
+\doxysubsubsection{\texorpdfstring{connect\_to\_proxy()}{connect\_to\_proxy()}}
+{\footnotesize\ttfamily void connect\+\_\+to\+\_\+proxy (\begin{DoxyParamCaption}\item[{Client $\ast$}]{c }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{client_8c_ac516e1603bbfd5bd1a221a16ee943f2e}\label{client_8c_ac516e1603bbfd5bd1a221a16ee943f2e}} 
+\index{client.c@{client.c}!ftp@{ftp}}
+\index{ftp@{ftp}!client.c@{client.c}}
+\doxysubsubsection{\texorpdfstring{ftp()}{ftp()}}
+{\footnotesize\ttfamily void ftp (\begin{DoxyParamCaption}\item[{Client $\ast$}]{c }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{client_8c_aea921d2ab0a6d2e9838daebf6ce94ab5}\label{client_8c_aea921d2ab0a6d2e9838daebf6ce94ab5}} 
+\index{client.c@{client.c}!get\_receiver@{get\_receiver}}
+\index{get\_receiver@{get\_receiver}!client.c@{client.c}}
+\doxysubsubsection{\texorpdfstring{get\_receiver()}{get\_receiver()}}
+{\footnotesize\ttfamily void get\+\_\+receiver (\begin{DoxyParamCaption}\item[{Client $\ast$}]{c }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{client_8c_a64392206139681efed8b35371c64dfd8}\label{client_8c_a64392206139681efed8b35371c64dfd8}} 
+\index{client.c@{client.c}!initialize\_client@{initialize\_client}}
+\index{initialize\_client@{initialize\_client}!client.c@{client.c}}
+\doxysubsubsection{\texorpdfstring{initialize\_client()}{initialize\_client()}}
+{\footnotesize\ttfamily void initialize\+\_\+client (\begin{DoxyParamCaption}\item[{Client $\ast$}]{c,  }\item[{char $\ast$}]{ip\+\_\+addr,  }\item[{int}]{port\+\_\+proxy,  }\item[{int}]{port\+\_\+utilisateur }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{client_8c_a3c04138a5bfe5d72780bb7e82a18e627}\label{client_8c_a3c04138a5bfe5d72780bb7e82a18e627}} 
+\index{client.c@{client.c}!main@{main}}
+\index{main@{main}!client.c@{client.c}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily int main (\begin{DoxyParamCaption}\item[{int}]{argc,  }\item[{char $\ast$$\ast$}]{argv }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{client_8c_a2efce3fe4804a3d69e2b2b75b11ec1bf}\label{client_8c_a2efce3fe4804a3d69e2b2b75b11ec1bf}} 
+\index{client.c@{client.c}!read\_name@{read\_name}}
+\index{read\_name@{read\_name}!client.c@{client.c}}
+\doxysubsubsection{\texorpdfstring{read\_name()}{read\_name()}}
+{\footnotesize\ttfamily void read\+\_\+name (\begin{DoxyParamCaption}\item[{Client $\ast$}]{c }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{client_8c_ab153695e33a259f3c897e9e54677cffa}\label{client_8c_ab153695e33a259f3c897e9e54677cffa}} 
+\index{client.c@{client.c}!save\_file@{save\_file}}
+\index{save\_file@{save\_file}!client.c@{client.c}}
+\doxysubsubsection{\texorpdfstring{save\_file()}{save\_file()}}
+{\footnotesize\ttfamily void save\+\_\+file (\begin{DoxyParamCaption}\item[{Shared\+\_\+memory $\ast$}]{shm }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{client_8c_a8019f62abe69c61643c6d3668e928c52}\label{client_8c_a8019f62abe69c61643c6d3668e928c52}} 
+\index{client.c@{client.c}!thread\_client\_receive@{thread\_client\_receive}}
+\index{thread\_client\_receive@{thread\_client\_receive}!client.c@{client.c}}
+\doxysubsubsection{\texorpdfstring{thread\_client\_receive()}{thread\_client\_receive()}}
+{\footnotesize\ttfamily void$\ast$ thread\+\_\+client\+\_\+receive (\begin{DoxyParamCaption}\item[{void $\ast$}]{arg }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{client_8c_a638fd95d639f91564bd589f871ca52aa}\label{client_8c_a638fd95d639f91564bd589f871ca52aa}} 
+\index{client.c@{client.c}!thread\_client\_resend@{thread\_client\_resend}}
+\index{thread\_client\_resend@{thread\_client\_resend}!client.c@{client.c}}
+\doxysubsubsection{\texorpdfstring{thread\_client\_resend()}{thread\_client\_resend()}}
+{\footnotesize\ttfamily void$\ast$ thread\+\_\+client\+\_\+resend (\begin{DoxyParamCaption}\item[{void $\ast$}]{arg }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{client_8c_a1513faa5b167efd9ddbf578502a276bb}\label{client_8c_a1513faa5b167efd9ddbf578502a276bb}} 
+\index{client.c@{client.c}!thread\_client\_send@{thread\_client\_send}}
+\index{thread\_client\_send@{thread\_client\_send}!client.c@{client.c}}
+\doxysubsubsection{\texorpdfstring{thread\_client\_send()}{thread\_client\_send()}}
+{\footnotesize\ttfamily void$\ast$ thread\+\_\+client\+\_\+send (\begin{DoxyParamCaption}\item[{void $\ast$}]{arg }\end{DoxyParamCaption})}
+

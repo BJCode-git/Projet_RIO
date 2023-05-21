@@ -1,0 +1,88 @@
+\hypertarget{proxy_8c}{}\doxysection{src/proxy.c File Reference}
+\label{proxy_8c}\index{src/proxy.c@{src/proxy.c}}
+{\ttfamily \#include \char`\"{}../include/proxy.\+h\char`\"{}}\newline
+Include dependency graph for proxy.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=170pt]{proxy_8c__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+Client $\ast$ \mbox{\hyperlink{proxy_8c_a284fe0fca90dbde546fc4f137c388899}{get\+\_\+client}} (Shared\+\_\+memory $\ast$shm, char $\ast$name)
+\item 
+int \mbox{\hyperlink{proxy_8c_ae038158ca44e4c7124df6d2b772d80fe}{get\+\_\+client\+\_\+fd}} (Shared\+\_\+memory $\ast$shm, Sockaddr\+\_\+in $\ast$addr)
+\item 
+Server $\ast$ \mbox{\hyperlink{proxy_8c_a3355bb4ecb8e73468f8b0638712c2b4c}{get\+\_\+server\+\_\+with\+\_\+min\+\_\+load}} (Shared\+\_\+memory $\ast$shm)
+\item 
+void $\ast$ \mbox{\hyperlink{proxy_8c_ae7a46f17d6a01715001dc8160693b39c}{handle\+\_\+client\+\_\+stream}} (void $\ast$arg)
+\item 
+void $\ast$ \mbox{\hyperlink{proxy_8c_a98b54e53c5880e0d3fa9cee5eaa04861}{handle\+\_\+server\+\_\+stream}} (void $\ast$arg)
+\item 
+void \mbox{\hyperlink{proxy_8c_a492659428fd976c25138d9b06dfebb2a}{accept\+\_\+new\+\_\+client}} (Proxy $\ast$p)
+\item 
+void \mbox{\hyperlink{proxy_8c_ab2eb76e730f2fd2d8f301969dbda9895}{open\+\_\+new\+\_\+server}} (Proxy $\ast$p)
+\item 
+void \mbox{\hyperlink{proxy_8c_a809f9716e8cd11f4d89ba1c54d2b2272}{initialize\+\_\+proxy}} (Proxy $\ast$p, int port, char $\ast$filename)
+\item 
+int \mbox{\hyperlink{proxy_8c_a3c04138a5bfe5d72780bb7e82a18e627}{main}} (int argc, char $\ast$$\ast$argv)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{proxy_8c_a492659428fd976c25138d9b06dfebb2a}\label{proxy_8c_a492659428fd976c25138d9b06dfebb2a}} 
+\index{proxy.c@{proxy.c}!accept\_new\_client@{accept\_new\_client}}
+\index{accept\_new\_client@{accept\_new\_client}!proxy.c@{proxy.c}}
+\doxysubsubsection{\texorpdfstring{accept\_new\_client()}{accept\_new\_client()}}
+{\footnotesize\ttfamily void accept\+\_\+new\+\_\+client (\begin{DoxyParamCaption}\item[{Proxy $\ast$}]{p }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{proxy_8c_a284fe0fca90dbde546fc4f137c388899}\label{proxy_8c_a284fe0fca90dbde546fc4f137c388899}} 
+\index{proxy.c@{proxy.c}!get\_client@{get\_client}}
+\index{get\_client@{get\_client}!proxy.c@{proxy.c}}
+\doxysubsubsection{\texorpdfstring{get\_client()}{get\_client()}}
+{\footnotesize\ttfamily Client$\ast$ get\+\_\+client (\begin{DoxyParamCaption}\item[{Shared\+\_\+memory $\ast$}]{shm,  }\item[{char $\ast$}]{name }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{proxy_8c_ae038158ca44e4c7124df6d2b772d80fe}\label{proxy_8c_ae038158ca44e4c7124df6d2b772d80fe}} 
+\index{proxy.c@{proxy.c}!get\_client\_fd@{get\_client\_fd}}
+\index{get\_client\_fd@{get\_client\_fd}!proxy.c@{proxy.c}}
+\doxysubsubsection{\texorpdfstring{get\_client\_fd()}{get\_client\_fd()}}
+{\footnotesize\ttfamily int get\+\_\+client\+\_\+fd (\begin{DoxyParamCaption}\item[{Shared\+\_\+memory $\ast$}]{shm,  }\item[{Sockaddr\+\_\+in $\ast$}]{addr }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{proxy_8c_a3355bb4ecb8e73468f8b0638712c2b4c}\label{proxy_8c_a3355bb4ecb8e73468f8b0638712c2b4c}} 
+\index{proxy.c@{proxy.c}!get\_server\_with\_min\_load@{get\_server\_with\_min\_load}}
+\index{get\_server\_with\_min\_load@{get\_server\_with\_min\_load}!proxy.c@{proxy.c}}
+\doxysubsubsection{\texorpdfstring{get\_server\_with\_min\_load()}{get\_server\_with\_min\_load()}}
+{\footnotesize\ttfamily Server$\ast$ get\+\_\+server\+\_\+with\+\_\+min\+\_\+load (\begin{DoxyParamCaption}\item[{Shared\+\_\+memory $\ast$}]{shm }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{proxy_8c_ae7a46f17d6a01715001dc8160693b39c}\label{proxy_8c_ae7a46f17d6a01715001dc8160693b39c}} 
+\index{proxy.c@{proxy.c}!handle\_client\_stream@{handle\_client\_stream}}
+\index{handle\_client\_stream@{handle\_client\_stream}!proxy.c@{proxy.c}}
+\doxysubsubsection{\texorpdfstring{handle\_client\_stream()}{handle\_client\_stream()}}
+{\footnotesize\ttfamily void$\ast$ handle\+\_\+client\+\_\+stream (\begin{DoxyParamCaption}\item[{void $\ast$}]{arg }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{proxy_8c_a98b54e53c5880e0d3fa9cee5eaa04861}\label{proxy_8c_a98b54e53c5880e0d3fa9cee5eaa04861}} 
+\index{proxy.c@{proxy.c}!handle\_server\_stream@{handle\_server\_stream}}
+\index{handle\_server\_stream@{handle\_server\_stream}!proxy.c@{proxy.c}}
+\doxysubsubsection{\texorpdfstring{handle\_server\_stream()}{handle\_server\_stream()}}
+{\footnotesize\ttfamily void$\ast$ handle\+\_\+server\+\_\+stream (\begin{DoxyParamCaption}\item[{void $\ast$}]{arg }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{proxy_8c_a809f9716e8cd11f4d89ba1c54d2b2272}\label{proxy_8c_a809f9716e8cd11f4d89ba1c54d2b2272}} 
+\index{proxy.c@{proxy.c}!initialize\_proxy@{initialize\_proxy}}
+\index{initialize\_proxy@{initialize\_proxy}!proxy.c@{proxy.c}}
+\doxysubsubsection{\texorpdfstring{initialize\_proxy()}{initialize\_proxy()}}
+{\footnotesize\ttfamily void initialize\+\_\+proxy (\begin{DoxyParamCaption}\item[{Proxy $\ast$}]{p,  }\item[{int}]{port,  }\item[{char $\ast$}]{filename }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{proxy_8c_a3c04138a5bfe5d72780bb7e82a18e627}\label{proxy_8c_a3c04138a5bfe5d72780bb7e82a18e627}} 
+\index{proxy.c@{proxy.c}!main@{main}}
+\index{main@{main}!proxy.c@{proxy.c}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily int main (\begin{DoxyParamCaption}\item[{int}]{argc,  }\item[{char $\ast$$\ast$}]{argv }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{proxy_8c_ab2eb76e730f2fd2d8f301969dbda9895}\label{proxy_8c_ab2eb76e730f2fd2d8f301969dbda9895}} 
+\index{proxy.c@{proxy.c}!open\_new\_server@{open\_new\_server}}
+\index{open\_new\_server@{open\_new\_server}!proxy.c@{proxy.c}}
+\doxysubsubsection{\texorpdfstring{open\_new\_server()}{open\_new\_server()}}
+{\footnotesize\ttfamily void open\+\_\+new\+\_\+server (\begin{DoxyParamCaption}\item[{Proxy $\ast$}]{p }\end{DoxyParamCaption})}
+

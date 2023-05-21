@@ -32,6 +32,7 @@ typedef struct{
 struct Shared_memory{
   Client clients[BUFLEN];
   int nb_clients;
+  int nb_clients_connected;
  
   Server servers[BUFLEN];
   int nb_servers;
@@ -55,7 +56,7 @@ int get_client_fd(Shared_memory *shm,Sockaddr_in *addr);
 void * handle_client_stream(void *arg);
 void * handle_server_stream(void *arg);
 
-void initialize_proxy(Proxy *p, int argc, char **argv);
+void initialize_proxy(Proxy *p, int port, char *filename);
 
 void accept_new_client(Proxy *p);
 void open_new_server(Proxy *p);

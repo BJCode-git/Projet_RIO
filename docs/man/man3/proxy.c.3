@@ -1,0 +1,65 @@
+.TH "src/proxy.c" 3 "Sun May 21 2023" "Version 0.0.1" "Projet VERDON-BERGAMINI-BRELOT" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+src/proxy.c
+.SH SYNOPSIS
+.br
+.PP
+\fC#include '\&.\&./include/proxy\&.h'\fP
+.br
+
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "Client * \fBget_client\fP (Shared_memory *shm, char *name)"
+.br
+.ti -1c
+.RI "int \fBget_client_fd\fP (Shared_memory *shm, Sockaddr_in *addr)"
+.br
+.ti -1c
+.RI "Server * \fBget_server_with_min_load\fP (Shared_memory *shm)"
+.br
+.ti -1c
+.RI "void * \fBhandle_client_stream\fP (void *arg)"
+.br
+.ti -1c
+.RI "void * \fBhandle_server_stream\fP (void *arg)"
+.br
+.ti -1c
+.RI "void \fBaccept_new_client\fP (Proxy *p)"
+.br
+.ti -1c
+.RI "void \fBopen_new_server\fP (Proxy *p)"
+.br
+.ti -1c
+.RI "void \fBinitialize_proxy\fP (Proxy *p, int port, char *filename)"
+.br
+.ti -1c
+.RI "int \fBmain\fP (int argc, char **argv)"
+.br
+.in -1c
+.SH "Function Documentation"
+.PP 
+.SS "void accept_new_client (Proxy * p)"
+
+.SS "Client* get_client (Shared_memory * shm, char * name)"
+
+.SS "int get_client_fd (Shared_memory * shm, Sockaddr_in * addr)"
+
+.SS "Server* get_server_with_min_load (Shared_memory * shm)"
+
+.SS "void* handle_client_stream (void * arg)"
+
+.SS "void* handle_server_stream (void * arg)"
+
+.SS "void initialize_proxy (Proxy * p, int port, char * filename)"
+
+.SS "int main (int argc, char ** argv)"
+
+.SS "void open_new_server (Proxy * p)"
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Projet VERDON-BERGAMINI-BRELOT from the source code\&.

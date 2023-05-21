@@ -101,12 +101,14 @@ void *handle_client_stream(void *arg){
     int continuer =1;
     Data_type type;
 
+    c->shm->nb_clients_connected++;
+
     // receive nam
 
     printf("\t Thread s\'occupe du client %s:%d connecté \n",inet_ntoa(c->addr.sin_addr),ntohs(c->addr.sin_port));
     //fflush(stdout);
 
-    while(continuer){
+    while(continuer &&  c->shm->nb_clients_connected > 0){
         
         lock(&c->client_mutex);
             if(recv(c->sock_fd, &c->data, sizeof(Data), 0)< 0){
@@ -138,6 +140,7 @@ void *handle_client_stream(void *arg){
                 c->sock_fd = -1;
             unlock(&c->client_mutex);
 
+             c->shm->nb_clients_connected--;
             close(fd);
 
             // decrement server load
@@ -322,17 +325,11 @@ void open_new_server(Proxy *p){
     p->shm.nb_servers++;
 }
 
-void initialize_proxy(Proxy *p, int argc,char **argv){
+void initialize_proxy(Proxy *p, int port, char *filename){
 
     memset(p, 0, sizeof(Proxy));
     printf("initialisation du proxy :\n");
-
-    int port=0;
-    if(argc > 2)
-        port = atoi(argv[2]);
-    
-    
-    
+        
     // init all mutex
     printf("initialisation des mutex :\n");
     for(int i=0; i<BUFLEN; i++){
@@ -341,13 +338,14 @@ void initialize_proxy(Proxy *p, int argc,char **argv){
     }
 
     p->shm.nb_clients = 0;
+    p->shm.nb_clients_connected = 0;
     p->shm.nb_servers = 0;
 
 
     printf("Lecture de la liste des serveurs :\n");
 
     FILE * f = NULL;
-    PCHK( f = fopen( argv[1], "r" ) ); 
+    PCHK( f = fopen( filename, "r" ) ); 
 
     char line[128];
     char *ip = NULL,*pt = NULL;
@@ -401,10 +399,16 @@ void initialize_proxy(Proxy *p, int argc,char **argv){
 int main(int argc, char **argv){
 
     Proxy p;
+    if(argc < 2){
+        printf("Usage : %s <liste des serveurs> (port_ecoute)\n", argv[0]);
+        return 1;
+    }
+
+    int port = argc > 2 ? atoi(argv[2]) : -1;
+
 
     printf("Proxy démarré\n");
-
-    initialize_proxy(&p, argc, argv);
+    initialize_proxy(&p, port, argv[1]);
     printf("Proxy initialisé\n");
 
     printf("En attente de clients\n");

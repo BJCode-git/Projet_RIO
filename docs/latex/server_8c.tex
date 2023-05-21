@@ -1,0 +1,66 @@
+\hypertarget{server_8c}{}\doxysection{src/server.c File Reference}
+\label{server_8c}\index{src/server.c@{src/server.c}}
+{\ttfamily \#include \char`\"{}../include/server.\+h\char`\"{}}\newline
+Include dependency graph for server.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=174pt]{server_8c__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{server_8c_a0c21e735898fd2188d4b3549be6a9b77}{test\+\_\+data\+\_\+integrity}} (Data $\ast$data)
+\item 
+void \mbox{\hyperlink{server_8c_a5e5819d02f75d73f195dc3151c7f648b}{server\+\_\+send}} (Server $\ast$s)
+\item 
+void \mbox{\hyperlink{server_8c_a01d8973170111fd0a34c0dd9ebe52989}{server\+\_\+read}} (Server $\ast$s)
+\item 
+void \mbox{\hyperlink{server_8c_a6fc0ff58ffb9fbdbe8e97d6198c6bc79}{initialize\+\_\+server}} (Server $\ast$s, int port)
+\item 
+void \mbox{\hyperlink{server_8c_a42567e0260138df04cd4db7283a3bda9}{wait\+\_\+for\+\_\+proxy}} (Server $\ast$s)
+\item 
+int \mbox{\hyperlink{server_8c_a3c04138a5bfe5d72780bb7e82a18e627}{main}} (int argc, char $\ast$$\ast$argv)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{server_8c_a6fc0ff58ffb9fbdbe8e97d6198c6bc79}\label{server_8c_a6fc0ff58ffb9fbdbe8e97d6198c6bc79}} 
+\index{server.c@{server.c}!initialize\_server@{initialize\_server}}
+\index{initialize\_server@{initialize\_server}!server.c@{server.c}}
+\doxysubsubsection{\texorpdfstring{initialize\_server()}{initialize\_server()}}
+{\footnotesize\ttfamily void initialize\+\_\+server (\begin{DoxyParamCaption}\item[{Server $\ast$}]{s,  }\item[{int}]{port }\end{DoxyParamCaption})}
+
+Configure server address structure
+
+Configure proxy address structure\mbox{\Hypertarget{server_8c_a3c04138a5bfe5d72780bb7e82a18e627}\label{server_8c_a3c04138a5bfe5d72780bb7e82a18e627}} 
+\index{server.c@{server.c}!main@{main}}
+\index{main@{main}!server.c@{server.c}}
+\doxysubsubsection{\texorpdfstring{main()}{main()}}
+{\footnotesize\ttfamily int main (\begin{DoxyParamCaption}\item[{int}]{argc,  }\item[{char $\ast$$\ast$}]{argv }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{server_8c_a01d8973170111fd0a34c0dd9ebe52989}\label{server_8c_a01d8973170111fd0a34c0dd9ebe52989}} 
+\index{server.c@{server.c}!server\_read@{server\_read}}
+\index{server\_read@{server\_read}!server.c@{server.c}}
+\doxysubsubsection{\texorpdfstring{server\_read()}{server\_read()}}
+{\footnotesize\ttfamily void server\+\_\+read (\begin{DoxyParamCaption}\item[{Server $\ast$}]{s }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{server_8c_a5e5819d02f75d73f195dc3151c7f648b}\label{server_8c_a5e5819d02f75d73f195dc3151c7f648b}} 
+\index{server.c@{server.c}!server\_send@{server\_send}}
+\index{server\_send@{server\_send}!server.c@{server.c}}
+\doxysubsubsection{\texorpdfstring{server\_send()}{server\_send()}}
+{\footnotesize\ttfamily void server\+\_\+send (\begin{DoxyParamCaption}\item[{Server $\ast$}]{s }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{server_8c_a0c21e735898fd2188d4b3549be6a9b77}\label{server_8c_a0c21e735898fd2188d4b3549be6a9b77}} 
+\index{server.c@{server.c}!test\_data\_integrity@{test\_data\_integrity}}
+\index{test\_data\_integrity@{test\_data\_integrity}!server.c@{server.c}}
+\doxysubsubsection{\texorpdfstring{test\_data\_integrity()}{test\_data\_integrity()}}
+{\footnotesize\ttfamily void test\+\_\+data\+\_\+integrity (\begin{DoxyParamCaption}\item[{Data $\ast$}]{data }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{server_8c_a42567e0260138df04cd4db7283a3bda9}\label{server_8c_a42567e0260138df04cd4db7283a3bda9}} 
+\index{server.c@{server.c}!wait\_for\_proxy@{wait\_for\_proxy}}
+\index{wait\_for\_proxy@{wait\_for\_proxy}!server.c@{server.c}}
+\doxysubsubsection{\texorpdfstring{wait\_for\_proxy()}{wait\_for\_proxy()}}
+{\footnotesize\ttfamily void wait\+\_\+for\+\_\+proxy (\begin{DoxyParamCaption}\item[{Server $\ast$}]{s }\end{DoxyParamCaption})}
+

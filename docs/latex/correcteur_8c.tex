@@ -1,0 +1,136 @@
+\hypertarget{correcteur_8c}{}\doxysection{src/correcteur.c File Reference}
+\label{correcteur_8c}\index{src/correcteur.c@{src/correcteur.c}}
+{\ttfamily \#include \char`\"{}../include/correcteur.\+h\char`\"{}}\newline
+Include dependency graph for correcteur.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=190pt]{correcteur_8c__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{correcteur_8c_a15803261f2eb80a17efb6873c619e5a8}{bruiter}} (uint8\+\_\+t $\ast$m)
+\item 
+uint16\+\_\+t \mbox{\hyperlink{correcteur_8c_a0cb9dbb65745c7cab4ceb91260241bd1}{chg\+\_\+nth\+\_\+bit}} (int n, uint16\+\_\+t m)
+\item 
+uint16\+\_\+t \mbox{\hyperlink{correcteur_8c_abf851bd704dae3e7c6bc2edfe5fc72fe}{set\+\_\+nth\+\_\+bit}} (int n, uint16\+\_\+t m)
+\item 
+uint8\+\_\+t \mbox{\hyperlink{correcteur_8c_a6624067abddcd95b24217295a2e4a835}{get\+\_\+nth\+\_\+bit}} (int n, uint8\+\_\+t m)
+\item 
+void \mbox{\hyperlink{correcteur_8c_a6b7de9e5af81b2d30d0c69ec6fe8b983}{print\+\_\+binary\+\_\+8bit}} (uint8\+\_\+t value)
+\item 
+void \mbox{\hyperlink{correcteur_8c_a081b977c46c01a819363aec4aa45fb8f}{print\+\_\+binary\+\_\+16bit}} (uint16\+\_\+t value)
+\item 
+void \mbox{\hyperlink{correcteur_8c_a21d60566659193ddacaa41eaab41ef26}{print\+\_\+word}} (int k, uint16\+\_\+t value)
+\item 
+int \mbox{\hyperlink{correcteur_8c_aa7013db83b8d2eddf1f0d889c12c3d05}{cardinal\+\_\+bit}} (uint16\+\_\+t value)
+\item 
+int \mbox{\hyperlink{correcteur_8c_ae7e45217bc2f2165f7a03cf958e58238}{parity\+\_\+bit}} (uint8\+\_\+t m)
+\item 
+uint8\+\_\+t \mbox{\hyperlink{correcteur_8c_ab8df3d31920ec46ed5237356e34992db}{crc\+Generation}} (uint8\+\_\+t m)
+\item 
+uint8\+\_\+t \mbox{\hyperlink{correcteur_8c_a73cc653a030e2380c11dc5670ce0ee89}{crc\+Verif}} (uint16\+\_\+t m)
+\item 
+int \mbox{\hyperlink{correcteur_8c_ad47e87f5a0e17e151a45a72338e258bd}{crc\+\_\+error\+\_\+amount}} (uint16\+\_\+t m)
+\item 
+uint16\+\_\+t \mbox{\hyperlink{correcteur_8c_a1ab67f161fab0cf9f7e2a17ce2bc65c6}{concat}} (uint8\+\_\+t m, uint8\+\_\+t crc)
+\item 
+int \mbox{\hyperlink{correcteur_8c_ad29490b8aeb00fd6314d12f465f729e7}{hamming\+\_\+distance}} (uint16\+\_\+t m)
+\item 
+int \mbox{\hyperlink{correcteur_8c_aeec2a38d2e692a2bc0f68ce796878c1c}{test\+\_\+and\+\_\+correct\+\_\+crc}} (uint8\+\_\+t $\ast$m, uint8\+\_\+t $\ast$crc)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{correcteur_8c_a15803261f2eb80a17efb6873c619e5a8}\label{correcteur_8c_a15803261f2eb80a17efb6873c619e5a8}} 
+\index{correcteur.c@{correcteur.c}!bruiter@{bruiter}}
+\index{bruiter@{bruiter}!correcteur.c@{correcteur.c}}
+\doxysubsubsection{\texorpdfstring{bruiter()}{bruiter()}}
+{\footnotesize\ttfamily void bruiter (\begin{DoxyParamCaption}\item[{uint8\+\_\+t $\ast$}]{m }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{correcteur_8c_aa7013db83b8d2eddf1f0d889c12c3d05}\label{correcteur_8c_aa7013db83b8d2eddf1f0d889c12c3d05}} 
+\index{correcteur.c@{correcteur.c}!cardinal\_bit@{cardinal\_bit}}
+\index{cardinal\_bit@{cardinal\_bit}!correcteur.c@{correcteur.c}}
+\doxysubsubsection{\texorpdfstring{cardinal\_bit()}{cardinal\_bit()}}
+{\footnotesize\ttfamily int cardinal\+\_\+bit (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{value }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{correcteur_8c_a0cb9dbb65745c7cab4ceb91260241bd1}\label{correcteur_8c_a0cb9dbb65745c7cab4ceb91260241bd1}} 
+\index{correcteur.c@{correcteur.c}!chg\_nth\_bit@{chg\_nth\_bit}}
+\index{chg\_nth\_bit@{chg\_nth\_bit}!correcteur.c@{correcteur.c}}
+\doxysubsubsection{\texorpdfstring{chg\_nth\_bit()}{chg\_nth\_bit()}}
+{\footnotesize\ttfamily uint16\+\_\+t chg\+\_\+nth\+\_\+bit (\begin{DoxyParamCaption}\item[{int}]{n,  }\item[{uint16\+\_\+t}]{m }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{correcteur_8c_a1ab67f161fab0cf9f7e2a17ce2bc65c6}\label{correcteur_8c_a1ab67f161fab0cf9f7e2a17ce2bc65c6}} 
+\index{correcteur.c@{correcteur.c}!concat@{concat}}
+\index{concat@{concat}!correcteur.c@{correcteur.c}}
+\doxysubsubsection{\texorpdfstring{concat()}{concat()}}
+{\footnotesize\ttfamily uint16\+\_\+t concat (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{m,  }\item[{uint8\+\_\+t}]{crc }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{correcteur_8c_ad47e87f5a0e17e151a45a72338e258bd}\label{correcteur_8c_ad47e87f5a0e17e151a45a72338e258bd}} 
+\index{correcteur.c@{correcteur.c}!crc\_error\_amount@{crc\_error\_amount}}
+\index{crc\_error\_amount@{crc\_error\_amount}!correcteur.c@{correcteur.c}}
+\doxysubsubsection{\texorpdfstring{crc\_error\_amount()}{crc\_error\_amount()}}
+{\footnotesize\ttfamily int crc\+\_\+error\+\_\+amount (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{m }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{correcteur_8c_ab8df3d31920ec46ed5237356e34992db}\label{correcteur_8c_ab8df3d31920ec46ed5237356e34992db}} 
+\index{correcteur.c@{correcteur.c}!crcGeneration@{crcGeneration}}
+\index{crcGeneration@{crcGeneration}!correcteur.c@{correcteur.c}}
+\doxysubsubsection{\texorpdfstring{crcGeneration()}{crcGeneration()}}
+{\footnotesize\ttfamily uint8\+\_\+t crc\+Generation (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{m }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{correcteur_8c_a73cc653a030e2380c11dc5670ce0ee89}\label{correcteur_8c_a73cc653a030e2380c11dc5670ce0ee89}} 
+\index{correcteur.c@{correcteur.c}!crcVerif@{crcVerif}}
+\index{crcVerif@{crcVerif}!correcteur.c@{correcteur.c}}
+\doxysubsubsection{\texorpdfstring{crcVerif()}{crcVerif()}}
+{\footnotesize\ttfamily uint8\+\_\+t crc\+Verif (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{m }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{correcteur_8c_a6624067abddcd95b24217295a2e4a835}\label{correcteur_8c_a6624067abddcd95b24217295a2e4a835}} 
+\index{correcteur.c@{correcteur.c}!get\_nth\_bit@{get\_nth\_bit}}
+\index{get\_nth\_bit@{get\_nth\_bit}!correcteur.c@{correcteur.c}}
+\doxysubsubsection{\texorpdfstring{get\_nth\_bit()}{get\_nth\_bit()}}
+{\footnotesize\ttfamily uint8\+\_\+t get\+\_\+nth\+\_\+bit (\begin{DoxyParamCaption}\item[{int}]{n,  }\item[{uint8\+\_\+t}]{m }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{correcteur_8c_ad29490b8aeb00fd6314d12f465f729e7}\label{correcteur_8c_ad29490b8aeb00fd6314d12f465f729e7}} 
+\index{correcteur.c@{correcteur.c}!hamming\_distance@{hamming\_distance}}
+\index{hamming\_distance@{hamming\_distance}!correcteur.c@{correcteur.c}}
+\doxysubsubsection{\texorpdfstring{hamming\_distance()}{hamming\_distance()}}
+{\footnotesize\ttfamily int hamming\+\_\+distance (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{m }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{correcteur_8c_ae7e45217bc2f2165f7a03cf958e58238}\label{correcteur_8c_ae7e45217bc2f2165f7a03cf958e58238}} 
+\index{correcteur.c@{correcteur.c}!parity\_bit@{parity\_bit}}
+\index{parity\_bit@{parity\_bit}!correcteur.c@{correcteur.c}}
+\doxysubsubsection{\texorpdfstring{parity\_bit()}{parity\_bit()}}
+{\footnotesize\ttfamily int parity\+\_\+bit (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{m }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{correcteur_8c_a081b977c46c01a819363aec4aa45fb8f}\label{correcteur_8c_a081b977c46c01a819363aec4aa45fb8f}} 
+\index{correcteur.c@{correcteur.c}!print\_binary\_16bit@{print\_binary\_16bit}}
+\index{print\_binary\_16bit@{print\_binary\_16bit}!correcteur.c@{correcteur.c}}
+\doxysubsubsection{\texorpdfstring{print\_binary\_16bit()}{print\_binary\_16bit()}}
+{\footnotesize\ttfamily void print\+\_\+binary\+\_\+16bit (\begin{DoxyParamCaption}\item[{uint16\+\_\+t}]{value }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{correcteur_8c_a6b7de9e5af81b2d30d0c69ec6fe8b983}\label{correcteur_8c_a6b7de9e5af81b2d30d0c69ec6fe8b983}} 
+\index{correcteur.c@{correcteur.c}!print\_binary\_8bit@{print\_binary\_8bit}}
+\index{print\_binary\_8bit@{print\_binary\_8bit}!correcteur.c@{correcteur.c}}
+\doxysubsubsection{\texorpdfstring{print\_binary\_8bit()}{print\_binary\_8bit()}}
+{\footnotesize\ttfamily void print\+\_\+binary\+\_\+8bit (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{value }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{correcteur_8c_a21d60566659193ddacaa41eaab41ef26}\label{correcteur_8c_a21d60566659193ddacaa41eaab41ef26}} 
+\index{correcteur.c@{correcteur.c}!print\_word@{print\_word}}
+\index{print\_word@{print\_word}!correcteur.c@{correcteur.c}}
+\doxysubsubsection{\texorpdfstring{print\_word()}{print\_word()}}
+{\footnotesize\ttfamily void print\+\_\+word (\begin{DoxyParamCaption}\item[{int}]{k,  }\item[{uint16\+\_\+t}]{value }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{correcteur_8c_abf851bd704dae3e7c6bc2edfe5fc72fe}\label{correcteur_8c_abf851bd704dae3e7c6bc2edfe5fc72fe}} 
+\index{correcteur.c@{correcteur.c}!set\_nth\_bit@{set\_nth\_bit}}
+\index{set\_nth\_bit@{set\_nth\_bit}!correcteur.c@{correcteur.c}}
+\doxysubsubsection{\texorpdfstring{set\_nth\_bit()}{set\_nth\_bit()}}
+{\footnotesize\ttfamily uint16\+\_\+t set\+\_\+nth\+\_\+bit (\begin{DoxyParamCaption}\item[{int}]{n,  }\item[{uint16\+\_\+t}]{m }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{correcteur_8c_aeec2a38d2e692a2bc0f68ce796878c1c}\label{correcteur_8c_aeec2a38d2e692a2bc0f68ce796878c1c}} 
+\index{correcteur.c@{correcteur.c}!test\_and\_correct\_crc@{test\_and\_correct\_crc}}
+\index{test\_and\_correct\_crc@{test\_and\_correct\_crc}!correcteur.c@{correcteur.c}}
+\doxysubsubsection{\texorpdfstring{test\_and\_correct\_crc()}{test\_and\_correct\_crc()}}
+{\footnotesize\ttfamily int test\+\_\+and\+\_\+correct\+\_\+crc (\begin{DoxyParamCaption}\item[{uint8\+\_\+t $\ast$}]{m,  }\item[{uint8\+\_\+t $\ast$}]{crc }\end{DoxyParamCaption})}
+

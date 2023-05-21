@@ -1,0 +1,95 @@
+.TH "src/correcteur.c" 3 "Sun May 21 2023" "Version 0.0.1" "Projet VERDON-BERGAMINI-BRELOT" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+src/correcteur.c
+.SH SYNOPSIS
+.br
+.PP
+\fC#include '\&.\&./include/correcteur\&.h'\fP
+.br
+
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBbruiter\fP (uint8_t *m)"
+.br
+.ti -1c
+.RI "uint16_t \fBchg_nth_bit\fP (int n, uint16_t m)"
+.br
+.ti -1c
+.RI "uint16_t \fBset_nth_bit\fP (int n, uint16_t m)"
+.br
+.ti -1c
+.RI "uint8_t \fBget_nth_bit\fP (int n, uint8_t m)"
+.br
+.ti -1c
+.RI "void \fBprint_binary_8bit\fP (uint8_t value)"
+.br
+.ti -1c
+.RI "void \fBprint_binary_16bit\fP (uint16_t value)"
+.br
+.ti -1c
+.RI "void \fBprint_word\fP (int k, uint16_t value)"
+.br
+.ti -1c
+.RI "int \fBcardinal_bit\fP (uint16_t value)"
+.br
+.ti -1c
+.RI "int \fBparity_bit\fP (uint8_t m)"
+.br
+.ti -1c
+.RI "uint8_t \fBcrcGeneration\fP (uint8_t m)"
+.br
+.ti -1c
+.RI "uint8_t \fBcrcVerif\fP (uint16_t m)"
+.br
+.ti -1c
+.RI "int \fBcrc_error_amount\fP (uint16_t m)"
+.br
+.ti -1c
+.RI "uint16_t \fBconcat\fP (uint8_t m, uint8_t crc)"
+.br
+.ti -1c
+.RI "int \fBhamming_distance\fP (uint16_t m)"
+.br
+.ti -1c
+.RI "int \fBtest_and_correct_crc\fP (uint8_t *m, uint8_t *crc)"
+.br
+.in -1c
+.SH "Function Documentation"
+.PP 
+.SS "void bruiter (uint8_t * m)"
+
+.SS "int cardinal_bit (uint16_t value)"
+
+.SS "uint16_t chg_nth_bit (int n, uint16_t m)"
+
+.SS "uint16_t concat (uint8_t m, uint8_t crc)"
+
+.SS "int crc_error_amount (uint16_t m)"
+
+.SS "uint8_t crcGeneration (uint8_t m)"
+
+.SS "uint8_t crcVerif (uint16_t m)"
+
+.SS "uint8_t get_nth_bit (int n, uint8_t m)"
+
+.SS "int hamming_distance (uint16_t m)"
+
+.SS "int parity_bit (uint8_t m)"
+
+.SS "void print_binary_16bit (uint16_t value)"
+
+.SS "void print_binary_8bit (uint8_t value)"
+
+.SS "void print_word (int k, uint16_t value)"
+
+.SS "uint16_t set_nth_bit (int n, uint16_t m)"
+
+.SS "int test_and_correct_crc (uint8_t * m, uint8_t * crc)"
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for Projet VERDON-BERGAMINI-BRELOT from the source code\&.

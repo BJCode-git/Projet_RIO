@@ -28,6 +28,25 @@ proxy: include/base.h src/correcteur.c src/proxy.c
 correcteur: src/correcteur.c
 	$(CC) -o bin/$@ $^ -D TEST_CRC -g 
 
+create_sh:
+	mkdir -p bin
+	echo "#!/bin/bash\n./bin/server\nsleep 30" > bin/server.sh
+	chmod +x bin/server.sh
+	echo "#!/bin/bash\n./bin/client 127.0.0.1\nsleep 30" > bin/client.sh
+	chmod +x bin/client.sh
+	echo "#!/bin/bash\n./bin/proxy bin/server.txt\nsleep 30" > bin/proxy.sh
+	chmod +x bin/proxy.sh
+
+create_config_example:
+	mkdir -p bin
+	echo -n "127.0.0.1" > bin/server.txt
+	echo -n "127.0.0.1:54321\n127.0.0.1:54123" > bin/servers.txt
+
+
+test: all create_sh create_config_example 
+	gnome-terminal -- ./bin/server.sh
+	gnome-terminal -- ./bin/proxy.sh
+	gnome-terminal -- ./bin/client.sh
 
 docs:
 	doxygen Doxyfile
@@ -37,5 +56,6 @@ clean_docs:
 
 clean:
 	rm -f $(BIN) $(OBJS)
-	rm -f bin/$(PROG)
+	rm -f bin/*
+	rmdir bin
 

@@ -4,6 +4,9 @@ Compilation
 	make server -> compile le programme server
 	make proxy -> compile le programme proxy
 
+Execution :
+	
+
 Utilisation : 
 	<arg> -> argument obligatoire
 	(arg) -> argument optionnel
@@ -66,6 +69,27 @@ serveur  (port ecoute)  :
 	Si les données ne sont pas intègres, il envoie simplement un paquet de type DT_NAK à l'envoyeur.
 
 	Note1 : chaque paquet entre via le proxy et chaque paque sortant est envoyé à nouveau vers celui-ci.
-	Note2 : le proxy est configuré de sorte à pouvoir se connecter à plusieurs 
 
+proxy <liste des serveurs> (port_ecoute) :
+
+	Le proxy prend en entrée un fichier contenant une liste de serveur sous le format:
+		xxx.xxx.xxx.xxx:port_ecoute_serveur1
+		xxx.xxx.xxx.xxx:port_ecoute_serveur2
+	ex: 
+		8.8.8.8:80
+		1.1.1.1:53
+		..
+
+	Note : 
+	Le proxy est configuré de sorte à pouvoir se connecter à plusieurs serveurs, chaque serveur ayant une charge
+	Dès qu'un client se connecte, on lui attribue pour le traitement de ses échanges, le serveur avec la charge la moins élèvée à son arrivée.
+
+	Le proxy prend en option un port d'écoute, sinon il vaut par défaut DEFAULT_LISTEN_PORT_PROXY.
+
+	Le proxy introduit pour chaque paquet de données d'échange de type DT_CEX ou DT_FEX, un bruit
+	pour éventuellement corrompre les données.
+	Il effectue également un filtrage. Il garde en mémoire les clients en conservant le pseudo du client,
+	le serveur par lequel transite ses envois. Notamment, quand un client indique qu'il veut arrêter un 
+	echange de messages, de fichier ou mettre fin à la connection, le proxy indique directement au client destinatire
+	d'arrêter également l'échange sans passer par le serveur.
 
