@@ -30,20 +30,18 @@ typedef struct {
 	uint8_t ack_until;
 	int can_write;
 
-	Sockaddr_in dest_addr;
-	Sockaddr_in src_addr;
-	Sockaddr_in proxy_addr;
-
 	Mutex mutex;
 	Condition ecrire;
-	Condition peut_ecrire;
 	Data data;
 	char buffer[256];
 }Shared_memory;
 
 typedef struct {
-	char pseudo[MAX_PSEUDO_LENGTH];
+	Sockaddr_in dest_addr;
+	Sockaddr_in proxy_addr;
+
 	Shared_memory shm;
+	char pseudo[MAX_PSEUDO_LENGTH];
 }Client;
 
 
@@ -54,7 +52,8 @@ void *thread_client_resend(void *arg);
 void chat(Client *c);
 void ftp(Client *c);
 
-void initialize_client(Client *c);
+void initialize_client(Client *c, char *ip_addr, int port);
+void connect_to_proxy(Client *c);
 
 void get_dest_by_name(Client *c);
 void read_name(Client *c);

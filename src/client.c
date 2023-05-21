@@ -30,6 +30,7 @@ void *thread_client_receive(void *arg){
 
 		memset(&received, 0, sizeof(received));
 		recv(shm->sock_fd, &received, sizeof(&received), 0);
+		print_data(&received);
 		
 		lock(&shm->mutex);
 		switch(received.type){
@@ -110,6 +111,7 @@ void *thread_client_send(void *arg){
 			shm->data.data = (uint8_t) shm->buffer[i];
 			CHK(send(shm->sock_fd, &shm->data, sizeof(Data), 0));
 		}
+		printf("Message envoyé\n");
 		
     }
 
@@ -151,6 +153,7 @@ void *thread_client_resend(void *arg){
 					shm->out_fd = -1;
 					fprintf(stderr, "Erreur lors de l'envoi du fichier\n");
 				}
+				printf("Erreur lors de l'envoi des données\n");
 			}
 			else{
 				attempts++;
@@ -168,7 +171,9 @@ void chat(Client *c){
 
 	c->shm.state = CHAT;
 	Thread thread_send, thread_receive, thread_resend;
-	
+	c->shm.ack_until = 0;
+	c->shm.size = 0;
+	c->shm.can_write = 1;
 
 	TCHK(pthread_create(&thread_send, NULL, thread_client_send, &c->shm));
 	TCHK(pthread_create(&thread_receive, NULL, thread_client_receive, &c->shm));
@@ -192,6 +197,7 @@ void chat(Client *c){
 	c->shm.state = CHAT;
 	c->shm.data.type = DT_BOC;
 	CHK(send(c->shm.sock_fd, &c->shm.data, sizeof(c->shm.data), 0));
+
 
 	lock(&c->shm.mutex);
 	while(c->shm.state == CHAT){
@@ -240,87 +246,56 @@ void ftp(Client *c){
 	printf("Implementation incomplete\n");
 }
 
-void initialize_client(Client *c){
+void initialize_client(Client *c, char *ip_addr, int port){
+
+
+	memset(c, 0, sizeof(Client));
 
 	c->shm.state = UNDEFINED;
-	c->shm.can_write = 1;
-	c->shm.ack_until = 0;
-	c->shm.size = 0;
-	c->shm.sock_fd = -1;
 	c->shm.out_fd = -1;
-
-	memset(&c->shm.proxy_addr, 0, sizeof(c->shm.proxy_addr));
-	memset(&c->shm.dest_addr, 0, sizeof(c->shm.dest_addr));
-	memset(&c->shm.src_addr, 0, sizeof(c->shm.src_addr));
+	c->shm.sock_fd = -1;
 
 	pthread_mutex_init(&c->shm.mutex, NULL);
-    pthread_cond_init(&c->shm.ecrire, NULL);
+	pthread_cond_init(&c->shm.ecrire, NULL);
 
+	c->proxy_addr.sin_family = AF_INET;
+	c->proxy_addr.sin_port = port > 0 ? htons(port) : DEFAULT_LISTEN_PORT_PROXY;
 
-
-	int success = 0;
-	memset(c->shm.buffer, '\0', 255);
-	while(success == 0){
-
-		printf("Entrez l'adresse du proxy : \n");
-		fgets(c->shm.buffer, 128, stdin);
-		success = inet_aton(c->shm.buffer, &c->shm.proxy_addr.sin_addr);
-
+	if( inet_aton(ip_addr, &c->proxy_addr.sin_addr) ==0 ){
+		fprintf(stderr, "Erreur lors de la conversion de l'adresse IP\n");
+		exit(EXIT_FAILURE);
 	}
 	
-	c->shm.proxy_addr.sin_port = -1;
-	
-	memset(c->shm.buffer, 0, 255);
-	printf("Entrez le port du proxy : \n");
-	fgets(c->shm.buffer, 7, stdin);
 
-	c->shm.proxy_addr.sin_port = atoi(c->shm.buffer);
-	if(c->shm.proxy_addr.sin_port <= 0)
-		c->shm.proxy_addr.sin_port = DEFAULT_LISTEN_PORT_PROXY;
-	else
-		c->shm.proxy_addr.sin_port = htons(c->shm.proxy_addr.sin_port);
-
-	memset(c->shm.buffer, 0, 7);
-	
-	// initialize the proxy address
-	c->shm.proxy_addr.sin_family = AF_INET;
-
-	//remplit la structure src pour moi
-	memset(&c->shm.src_addr, 0, sizeof(c->shm.src_addr));
-	c->shm.src_addr.sin_family = AF_INET;
-	c->shm.src_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	//c->shm.src_addr.sin_port = DEFAULT_CLIENT_PORT;
-	/*
-	printf("Entrez votre port d'échange : \n");
-	fgets(c->shm.buffer, 7, stdin);
-	c->shm.src_addr.sin_port = htons(atoi(c->shm.buffer));
-	if(c->shm.src_addr.sin_port < 0 || c->shm.src_addr.sin_port > 65535)
-		c->shm.src_addr.sin_port = DEFAULT_CLIENT_PORT;
-	*/
+	c->dest_addr.sin_family = AF_INET;
+	c->dest_addr.sin_port = DEFAULT_CLIENT_PORT;
 }
 
 void connect_to_proxy(Client *c){
-	
+
 	// create the socket
 	CHK(c->shm.sock_fd = socket(AF_INET, SOCK_STREAM, 0));
-
+	
 	// connect to the proxy
-	//CHK(bind(c->shm.sock_fd, (struct sockaddr *) &c->shm.src_addr, sizeof(struct sockaddr)));
-
-	// connect to the proxy
-	bind(c->shm.sock_fd, (struct sockaddr *) &c->shm.src_addr, sizeof(struct sockaddr));
-	int i = 0;
+	int i;
 	for(i = 0; i < MAX_ATTEMPTS; i++){
 		printf("Tentative de connexion au proxy...\n");
 
-		if(connect(c->shm.sock_fd, (struct sockaddr *) &c->shm.proxy_addr, sizeof(c->shm.proxy_addr))==-1){
+		if(connect(c->shm.sock_fd, (struct sockaddr *) &c->proxy_addr, sizeof(struct sockaddr))==-1){
 			perror("Erreur de connexion au proxy, nouvelle tentative dans 1 seconde...\n");
 			sleep(1);
 		}
-
+		else
+			break;
+		
 	}
-	if(i == MAX_ATTEMPTS)
+
+	if(i == MAX_ATTEMPTS){
+		CHK(close(c->shm.sock_fd));
 		raler("Impossible de se connecter au proxy\n");
+	}
+
+	printf("Connexion au proxy reussie\n");
 	
 	// send the pseudo
 	read_name(c);
@@ -336,18 +311,18 @@ void get_receiver(Client *c){
 		memset(c->shm.buffer, 0, 128);
 		PCHK(fgets(c->shm.buffer, 128, stdin));
 
-		if( inet_aton(c->shm.buffer, &c->shm.dest_addr.sin_addr)!=0 ){
+		if( inet_aton(c->shm.buffer, &c->dest_addr.sin_addr)!=0 ){
 
 			memset(c->shm.buffer, 0, 8);
 			printf("Entrez le port du destinataire : \n");
 			PCHK(fgets(c->shm.buffer, 7, stdin));
 
-			c->shm.dest_addr.sin_port = htons(atoi(c->shm.buffer));
-			if(c->shm.dest_addr.sin_port < 0 || c->shm.dest_addr.sin_port > 65535){
-				c->shm.dest_addr.sin_port = DEFAULT_CLIENT_PORT;
+			c->dest_addr.sin_port = htons(atoi(c->shm.buffer));
+			if(c->dest_addr.sin_port < 0 || c->dest_addr.sin_port > 65535){
+				c->dest_addr.sin_port = DEFAULT_CLIENT_PORT;
 			}
 
-			c->shm.dest_addr.sin_family = AF_INET;
+			c->dest_addr.sin_family = AF_INET;
 			continuer = 0;
 		}
 		else{
@@ -369,7 +344,7 @@ void get_receiver(Client *c){
 				printf("Utilisateur non trouvé \n");
 			else{
 				printf("Utilisateur trouvé \n");
-				memcpy(&c->shm.dest_addr, &c->shm.data.origin_addr, sizeof(c->shm.dest_addr));
+				memcpy(&c->dest_addr, &c->shm.data.origin_addr, sizeof(c->dest_addr));
 				continuer = 0;
 			}
 		}
@@ -379,14 +354,20 @@ void get_receiver(Client *c){
 
 void configure_data(Client *c){
 	memset(&c->shm.data, 0, sizeof(c->shm.data));
-	memcpy(&c->shm.data.origin_addr, &c->shm.src_addr, sizeof(c->shm.src_addr));
-	memcpy(&c->shm.data.dest_addr, &c->shm.dest_addr, sizeof(c->shm.dest_addr));
+	// don't care, the proxy will fill it with the right value
+	memset(&c->shm.data.origin_addr, 0, sizeof(c->shm.data.origin_addr));
+	memcpy(&c->shm.data.dest_addr, &c->dest_addr, sizeof(c->dest_addr));
 }
 
 int main(int argc, char **argv){
 
+	if(argc < 2){
+		printf("Usage : %s <adresse proxy> <port proxy>\n", argv[0]);
+		exit(EXIT_FAILURE);
+	}
+
 	Client c;
-	initialize_client(&c);
+	initialize_client(&c, argv[1], atoi(argv[2]));
 	connect_to_proxy(&c);
 
 	int continuer = 1;
@@ -413,8 +394,5 @@ int main(int argc, char **argv){
 		}
 	}
 	
-
-	
-
 	return 0;
 }

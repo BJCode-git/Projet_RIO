@@ -33,6 +33,7 @@ void server_read(Server *s){
     
     memset(&s->buffer, 0, sizeof(s->buffer));
     recv(s->proxy_sock_fd, &s->buffer, sizeof(s->buffer), 0);
+    print_data(&s->buffer);
 
     // test integrity of the data
     test_data_integrity(&s->buffer);
@@ -68,8 +69,9 @@ void wait_for_proxy(Server *s){
     int sock; 
 
     CHK(sock = socket(AF_INET, SOCK_STREAM, 0));
+    
     CHK(bind(sock, (struct sockaddr *) &s->server_addr, sizeof(s->server_addr)));
-    CHK(listen(sock,SOMAXCONN));
+    CHK(listen(sock,1));
 
     printf("En attente de connexion du proxy...\n");
 

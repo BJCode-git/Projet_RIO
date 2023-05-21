@@ -33,6 +33,7 @@ int dynamic_realloc(void **ptr, size_t *allocated_size, size_t required_size, si
 */
 
 Client* get_client(Shared_memory *shm, char *name){
+    printf("Recherche d'un client \n");
     lock(&shm->mutex_clients);
     for(int i = 0 ; i< shm->nb_clients;i++ ){
         if(strncmp(shm->clients[i].name,name, MAX_PSEUDO_LENGTH)==0){
@@ -76,7 +77,6 @@ Server* get_server_with_min_load(Shared_memory *shm){
     return s;
 }
 
-
 void *handle_client_stream(void *arg){
     
     Client *c = (Client*) arg;
@@ -87,7 +87,10 @@ void *handle_client_stream(void *arg){
 
     while(continuer){
         memset(&data, 0, sizeof(data));
+        memcpy(&data.origin_addr, &c->addr, sizeof(Sockaddr_in));
         recv(c->sock_fd, &data, sizeof(data), 0);
+
+        print_data(&data);
 
         // if client close the connection
         if(data.type == DT_CLO){

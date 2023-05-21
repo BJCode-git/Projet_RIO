@@ -12,8 +12,6 @@
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
-#include <sys/time.h>
-#include <sys/types.h>
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -54,8 +52,8 @@ void raler(const char* msg){
 typedef struct sockaddr_in Sockaddr_in;
 
 typedef enum {
-  DT_CON, // Connection
   DT_CLO, // CLOse connection
+  DT_CON, // Connection
   DT_GET, // GET information about a user
 
   DT_BOC, // Beginning of Chat
@@ -84,5 +82,15 @@ typedef struct{
   uint8_t data;
   uint8_t crc;
 }Data;
+
+void print_data(Data *data){
+  printf("Data :\n");
+  printf("\t Origin : %s:%d\n",inet_ntoa(data->origin_addr.sin_addr),ntohs(data->origin_addr.sin_port));
+  printf("\t Dest : %s:%d\n",inet_ntoa(data->dest_addr.sin_addr),ntohs(data->dest_addr.sin_port));
+  printf("\t Type : %d\n",data->type);
+  printf("\t Id : %d\n",data->id);
+  printf("\t Data : %c\n",(char) data->data);
+  printf("\t Crc : %d\n",data->crc);
+}
 
 #endif
