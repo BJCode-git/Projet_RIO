@@ -3,6 +3,8 @@ Compilation
 	make client -> compile le programme client
 	make server -> compile le programme server
 	make proxy -> compile le programme proxy
+	make docs -> génère une doc partielle
+	make test -> génère tout et test l'application
 
 Execution :
 	
@@ -92,4 +94,8 @@ proxy <liste des serveurs> (port_ecoute) :
 	le serveur par lequel transite ses envois. Notamment, quand un client indique qu'il veut arrêter un 
 	echange de messages, de fichier ou mettre fin à la connection, le proxy indique directement au client destinatire
 	d'arrêter également l'échange sans passer par le serveur.
+
+	Le proxy  remplit automatiquement dans le paquet l'adresse de la source.
+	Quand un paquet lui revient du serveur, il regarder à quel client correspnd l'adresse ip et lui
+	envoie le paquet par la socket qui lui est associée.
 

@@ -3,32 +3,40 @@
 void test_data_integrity(Data *data){
     
     // test if the data is corrupted, correct it if possible
-    if(test_and_correct_crc(&data->data,&data->crc) == -1 ){
+    uint8_t m = data->data;
+    uint8_t crc = data->crc;
+
+    if(test_and_correct_crc(&m,&crc) == -1 ){
         printf("\t Correction impossible\n");
         // if the data is corrupted and can't be corrected, we send a DT_NAK
         // proxy should return the packet to the sender
 
         data->type = DT_NAK;
-        memcpy(&data->dest_addr, &data->origin_addr, sizeof(data->dest_addr));
+        memcpy(&data->dest_addr, &data->origin_addr, sizeof(Sockaddr_in));
     }
+
+    data->data = m;
+    data->crc = crc;
 }
 
 void server_send(Server *s){
 
     if(s->continue_job == 0) return;
-    
-    send(s->proxy_sock_fd,&s->buffer, sizeof(Data), 0);
-    printf("Paquet envoyé au proxy\n");
-    print_data(&s->buffer);
 
-    // if the data  is not corrupted, 
+    // send the data to the proxy
+    printf("Paquet à envoyer au proxy\n");
+    print_data(&s->buffer);
+    send(s->proxy_sock_fd,&s->buffer, sizeof(Data), 0);
+    
+
+    // if the data  is not corrupted and is an DT_CEX or DT_FEX, 
     // we also send an DT_ACK
     // to the sender
-    if(s->buffer.type != DT_NAK){
+    if(s->buffer.type == DT_CEX || s->buffer.type == DT_FEX){
 
         s->buffer.type = DT_ACK;
-        memcpy(&s->buffer.dest_addr, &s->buffer.origin_addr, sizeof(s->buffer.origin_addr));
-        send(s->proxy_sock_fd,&s->buffer, sizeof(s->buffer), 0);
+        memcpy(&s->buffer.dest_addr, &s->buffer.origin_addr, sizeof(Sockaddr_in));
+        send(s->proxy_sock_fd,&s->buffer, sizeof(Data), 0);
         printf("Paquet ACK envoyé au proxy\n");
         print_data(&s->buffer);
     }
@@ -37,27 +45,39 @@ void server_send(Server *s){
 
 void server_read(Server *s){
     
-    memset(&s->buffer, 0, sizeof(s->buffer));
-    recv(s->proxy_sock_fd, &s->buffer, sizeof(Data), 0);
+    memset(&s->buffer, 0, sizeof(Data));
+
+    CHK(recv(s->proxy_sock_fd, &s->buffer, sizeof(Data), 0));
     printf("Paquet reçu du proxy\n");
     print_data(&s->buffer);
-
-    // test integrity of the data
-    test_data_integrity(&s->buffer);
+    Data_type type = s->buffer.type;
 
     // test if the proxy is sending an DT_EOJ
-    if(s->buffer.type == DT_EOJ || s->buffer.type == DT_CLO)
+    if(type == DT_EOJ){
         s->continue_job = 0;
+        printf("Le proxy a fermé la connexion\n");
+        return;
+    }
+
+    // test integrity of the data
+    if(type == DT_CEX || s->buffer.type == DT_FEX)
+        test_data_integrity(&s->buffer);
+
+ 
 }
 
 void initialize_server(Server *s, int port){
    
     s->continue_job = 1;
     s->proxy_sock_fd = -1;
+    memset(&s->buffer, 0, sizeof(Data));
+    memset(&s->proxy_addr, 0, sizeof(Sockaddr_in));
+    memset(&s->server_addr, 0, sizeof(Sockaddr_in));
+
+    s->proxy_addr.sin_family      = AF_INET;
 
     port = port < 0 ? DEFAULT_EXCHANGE_PORT_SERVER : htons(port);
 
-    memset(&s->server_addr, 0, sizeof(s->server_addr));
      /// Configure server address structure
     s->server_addr.sin_family      = AF_INET;
     s->server_addr.sin_port        = port;
@@ -66,10 +86,6 @@ void initialize_server(Server *s, int port){
     printf("Addresse d'écoute serveur : %s\n", inet_ntoa(s->server_addr.sin_addr));
     printf("Port d'écoute du serveur : %d\n", ntohs(s->server_addr.sin_port));
 
-    /// Configure proxy address structure
-    memset(&s->proxy_addr, 0, sizeof(s->proxy_addr));
-
-    s->proxy_addr.sin_family      = AF_INET;
 }
 
 void wait_for_proxy(Server *s){
@@ -107,10 +123,8 @@ int main(int argc, char **argv){
     printf("Communication du serveur sur %s:%d \n", inet_ntoa(s.server_addr.sin_addr),ntohs(s.server_addr.sin_port));
 
     while(s.continue_job == 1){
-
         server_read(&s);
         server_send(&s);
-        
     }
 
 

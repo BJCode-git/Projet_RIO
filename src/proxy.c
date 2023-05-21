@@ -39,7 +39,8 @@ Client* get_client(Shared_memory *shm, char *name){
 
     for(int i = 0 ; i< shm->nb_clients;i++ ){
         lock(&shm->clients[i].client_mutex);
-            cmp = strncmp(shm->clients[i].name,name, MAX_PSEUDO_LENGTH-1);
+            printf("Comparaison recherche \"%s\" et \"%s\"\n",name,shm->clients[i].name);
+            cmp = strncmp(shm->clients[i].name,name, MAX_PSEUDO_LENGTH);
         unlock(&shm->clients[i].client_mutex);
         
         if(cmp==0){
@@ -50,30 +51,27 @@ Client* get_client(Shared_memory *shm, char *name){
     return NULL;
 }
 
-int get_client_fd(Shared_memory *shm,Sockaddr_in *addr){
+Client* get_client_by_addr(Shared_memory *shm,Sockaddr_in *addr){
 
-    int cmp,borne;
-    borne = shm->nb_clients;
+    int cmp;
 
-    for(int i = 0 ; i< borne;i++ ){
+    for(int i = 0 ; i< shm->nb_clients;i++ ){
 
         lock(&shm->clients[i].client_mutex);
             cmp = memcmp(&shm->clients[i].addr,addr, sizeof(Sockaddr_in));
         unlock(&shm->clients[i].client_mutex);
 
         if(cmp==0){
-            return shm->clients[i].sock_fd;
+            return shm->clients+i;
         }
     }
 
-    return -1;
+    return NULL;
 }
 
 Server* get_server_with_min_load(Shared_memory *shm){
-    int min = INT_MAX,borne;
+    int min = INT_MAX;
     Server *s = NULL;
-
-    borne = shm->nb_servers;
 
     for(int i = 0 ; i< shm->nb_servers;i++ ){
 
@@ -120,7 +118,7 @@ void *handle_client_stream(void *arg){
             type = c->data.type;
         unlock(&c->client_mutex);
 
-        printf("\t Thread Client reception de : \n",c->name);
+        printf("\t Thread Client reception de %s : \n",c->name);
         print_data(&c->data);
         fflush(stdout);
 
@@ -169,9 +167,11 @@ void *handle_client_stream(void *arg){
             memset(name, 0, MAX_PSEUDO_LENGTH);
 
             // receive name
-            recv(c->sock_fd, name, MAX_PSEUDO_LENGTH, 0);
+            lock(&c->client_mutex);
+                recv(c->sock_fd, name, MAX_PSEUDO_LENGTH, 0);
+            unlock(&c->client_mutex);
             Client *c2 = get_client(c->shm,name);
-            memset(&c->data, 0, sizeof(c->data));
+            memset(&c->data, 0, sizeof(Data));
 
             if(c2 == NULL) 
                 c->data.type = DT_INE;
@@ -182,17 +182,22 @@ void *handle_client_stream(void *arg){
                 unlock(&c2->client_mutex);
             }
             
-            send(c->sock_fd, &c->data, sizeof(c->data), 0);
+            send(c->sock_fd, &c->data, sizeof(Data), 0);
         }
 
-        else if(type == DT_CEX || type == DT_FEX || type == DT_BOC || type == DT_BOF){
+        else if(type == DT_CEX || type == DT_FEX){
             bruiter(&c->data.data);
-            send(c->server->server_fd, &c->data, sizeof(c->data), 0);
+            send(c->server->server_fd, &c->data, sizeof(Data), 0);
+           
         }
 
-        type = DT_CON;
+        /*
+        else if(type == DT_EOC || type == DT_EOF){
+            send(c->server->server_fd, &c->data, sizeof(c->data), 0);
+        }*/
+
         lock(&c->client_mutex);
-            memset(&c->data, 0, sizeof(c->data));
+            memset(&c->data, 0, sizeof(Data));
         unlock(&c->client_mutex);
     }
 
@@ -204,31 +209,32 @@ void *handle_server_stream(void *arg){
     
         printf("Serveur %s:%d connecté \n",inet_ntoa(s->addr.sin_addr),ntohs(s->addr.sin_port));
     
-
     while(s->shm->nb_servers >0){
         // receive data from server
-        memset(&s->data, 0, sizeof(Data));
-        if(recv(s->server_fd, &s->data, sizeof(Data), 0) <0){
-            perror("server recv");
-            pthread_exit(NULL);
-        }
+        //lock(&s->server_mutex);
+            memset(&s->data, 0, sizeof(Data));
+            if(recv(s->server_fd, &s->data, sizeof(Data), 0) <0){
+                perror("server recv");
+                unlock(&s->server_mutex);
+                pthread_exit(NULL);
+            }
+        //unlock(&s->server_mutex);
  
         printf("\t Serveur %s:%d a envoyé \n",inet_ntoa(s->addr.sin_addr),ntohs(s->addr.sin_port));
         print_data(&s->data);
         // send data to client
-        int fd = get_client_fd(s->shm, &s->data.dest_addr);
+        Client* c = get_client_by_addr(s->shm, &s->data.dest_addr);
 
         // if the dest client has close the connection,
         // we send the message to sender client
-        if(fd != -1){
-            s->data.type = s->data.type == DT_CEX ? DT_EOC : EOF;
-            fd = get_client_fd(s->shm, &s->data.origin_addr);
+        if(c->sock_fd == -1){
+            s->data.type = s->data.type == DT_CEX ? DT_EOC : DT_EOF;
+            c =  get_client_by_addr(s->shm, &s->data.origin_addr);
         }
 
-        send(fd, &s->data, sizeof(s->data), 0) ;
-        lock(&s->server_mutex);
-            memset(&s->data, 0, sizeof(Data));
-        lock(&s->server_mutex);
+        
+        send(c->sock_fd, &s->data, sizeof(s->data), 0) ;
+    
     }
     pthread_exit(NULL);
 }
@@ -248,12 +254,12 @@ void accept_new_client(Proxy *p){
     unlock(&c->client_mutex);
 
 
-    int len = sizeof(struct sockaddr);
+    socklen_t len = sizeof(struct sockaddr);
     lock(&c->client_mutex);
         c->sock_fd =  accept( p->sock_listen_fd,( struct sockaddr *) &c->addr, &len);
     unlock(&c->client_mutex);
     if(c->sock_fd <= 0){
-        fprintf(stderr, "Error accept client %s: \n", inet_ntoa(c->addr.sin_addr), ntohs(c->addr.sin_port));
+        fprintf(stderr,"Error accept client %s: %d \n", inet_ntoa(c->addr.sin_addr), ntohs(c->addr.sin_port));
         perror("accept");
         fflush(stderr);
         return;

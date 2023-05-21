@@ -1,7 +1,8 @@
 \hypertarget{proxy_8c}{}\doxysection{src/proxy.c File Reference}
 \label{proxy_8c}\index{src/proxy.c@{src/proxy.c}}
 {\ttfamily \#include \char`\"{}../include/proxy.\+h\char`\"{}}\newline
-Include dependency graph for proxy.\+c\+:\nopagebreak
+Include dependency graph for proxy.\+c\+:
+\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
@@ -13,7 +14,7 @@ Include dependency graph for proxy.\+c\+:\nopagebreak
 \item 
 Client $\ast$ \mbox{\hyperlink{proxy_8c_a284fe0fca90dbde546fc4f137c388899}{get\+\_\+client}} (Shared\+\_\+memory $\ast$shm, char $\ast$name)
 \item 
-int \mbox{\hyperlink{proxy_8c_ae038158ca44e4c7124df6d2b772d80fe}{get\+\_\+client\+\_\+fd}} (Shared\+\_\+memory $\ast$shm, Sockaddr\+\_\+in $\ast$addr)
+Client $\ast$ \mbox{\hyperlink{proxy_8c_a8f23bbfa9ab72760ec293235fad22a8e}{get\+\_\+client\+\_\+by\+\_\+addr}} (Shared\+\_\+memory $\ast$shm, Sockaddr\+\_\+in $\ast$addr)
 \item 
 Server $\ast$ \mbox{\hyperlink{proxy_8c_a3355bb4ecb8e73468f8b0638712c2b4c}{get\+\_\+server\+\_\+with\+\_\+min\+\_\+load}} (Shared\+\_\+memory $\ast$shm)
 \item 
@@ -44,11 +45,11 @@ int \mbox{\hyperlink{proxy_8c_a3c04138a5bfe5d72780bb7e82a18e627}{main}} (int arg
 \doxysubsubsection{\texorpdfstring{get\_client()}{get\_client()}}
 {\footnotesize\ttfamily Client$\ast$ get\+\_\+client (\begin{DoxyParamCaption}\item[{Shared\+\_\+memory $\ast$}]{shm,  }\item[{char $\ast$}]{name }\end{DoxyParamCaption})}
 
-\mbox{\Hypertarget{proxy_8c_ae038158ca44e4c7124df6d2b772d80fe}\label{proxy_8c_ae038158ca44e4c7124df6d2b772d80fe}} 
-\index{proxy.c@{proxy.c}!get\_client\_fd@{get\_client\_fd}}
-\index{get\_client\_fd@{get\_client\_fd}!proxy.c@{proxy.c}}
-\doxysubsubsection{\texorpdfstring{get\_client\_fd()}{get\_client\_fd()}}
-{\footnotesize\ttfamily int get\+\_\+client\+\_\+fd (\begin{DoxyParamCaption}\item[{Shared\+\_\+memory $\ast$}]{shm,  }\item[{Sockaddr\+\_\+in $\ast$}]{addr }\end{DoxyParamCaption})}
+\mbox{\Hypertarget{proxy_8c_a8f23bbfa9ab72760ec293235fad22a8e}\label{proxy_8c_a8f23bbfa9ab72760ec293235fad22a8e}} 
+\index{proxy.c@{proxy.c}!get\_client\_by\_addr@{get\_client\_by\_addr}}
+\index{get\_client\_by\_addr@{get\_client\_by\_addr}!proxy.c@{proxy.c}}
+\doxysubsubsection{\texorpdfstring{get\_client\_by\_addr()}{get\_client\_by\_addr()}}
+{\footnotesize\ttfamily Client$\ast$ get\+\_\+client\+\_\+by\+\_\+addr (\begin{DoxyParamCaption}\item[{Shared\+\_\+memory $\ast$}]{shm,  }\item[{Sockaddr\+\_\+in $\ast$}]{addr }\end{DoxyParamCaption})}
 
 \mbox{\Hypertarget{proxy_8c_a3355bb4ecb8e73468f8b0638712c2b4c}\label{proxy_8c_a3355bb4ecb8e73468f8b0638712c2b4c}} 
 \index{proxy.c@{proxy.c}!get\_server\_with\_min\_load@{get\_server\_with\_min\_load}}

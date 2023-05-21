@@ -38,9 +38,19 @@ void *thread_client_receive(void *arg){
 
 		printf("Received : ");
 		print_data(&received);
+
+		shm->out_fd = STDOUT_FILENO;
 		
 		lock(&shm->mutex);
 		switch(received.type){
+
+			case DT_CLO: // CLose
+				shm->state = QUIT;
+				if(shm->sock_fd != -1) close(shm->sock_fd);
+				if(shm->out_fd != -1) close(shm->out_fd);
+				cbroadcast(&shm->ecrire);
+				printf("Le serveur a ordonné la fermeture de la connexion\n");
+			break;
 
 			case DT_BOC: // Beginning of Chat
 				if(shm->state != UNDEFINED) break;
@@ -56,11 +66,11 @@ void *thread_client_receive(void *arg){
 
 			case DT_BOF: // Beginning of File
 				if(shm->state != UNDEFINED) break;
-				save_file(shm);
-				shm->state = FTP;
+				//save_file(shm);
+				//shm->state = FTP;
 			break;
 
-			case EOF: // End of File
+			case DT_EOF: // End of File
 				if(shm->state != FTP) break;
 				close(shm->out_fd);
 				shm->out_fd = -1;
@@ -70,22 +80,26 @@ void *thread_client_receive(void *arg){
 			case DT_ACK: // ACKnowledge
 				shm->ack_until = received.id > shm->ack_until ? received.id : shm->ack_until;
 				// If we received all the ACK, we can write again
-				if(shm->ack_until+1 == shm->size){
+				if(shm->ack_until +1 >= shm->size){
 					shm->ack_until = 0;
 					shm->size = 0;
 					shm->can_write = 1;
+					printf("Message correctement envoyé\n");
 				}
 				
 			break;
 			case DT_NAK: // Negative AcKnowledge
-				shm->ack_until = received.id > 0 ? received.id - 1 : 0;
+				shm->ack_until = received.id;
 				// tell that the data has been sent
 				csignal(&shm->ecrire);
 			break;
 
 			default:
 				if(shm->out_fd >=0 && (received.type == DT_CEX || received.type == DT_FEX  ) ){
+					putchar(received.data);
+					fflush(stdout);
 					write(shm->out_fd, &received.data, sizeof(received.data));
+					//printf("recu %d",received.data);
 				}
 		}
 		unlock(&shm->mutex);
@@ -97,27 +111,30 @@ void *thread_client_receive(void *arg){
 void *thread_client_send(void *arg){
 
 	Shared_memory *shm = (Shared_memory*) arg;
-	clock_t send_time;
 
 	lock(&shm->mutex);
 	while(shm->state == CHAT){
 
 		cwait(&shm->ecrire, &shm->mutex);
-		
+		if(shm->state != CHAT) break;
+
 		// send data
 		shm->can_write = 0;
-		printf("Envoi de données\n");
+
+		printf("Envoi de données %d données \n", shm->size);
 		for(int i=shm->ack_until; i<shm->size; i++){
 			shm->data.id = i;
 			shm->data.type = DT_CEX;
 			shm->data.data = (uint8_t) shm->buffer[i];
 			shm->data.crc = crcGeneration(shm->data.data);
+			printf("Envoi %d : \n", i);
+			print_data(&shm->data);
 			CHK(send(shm->sock_fd, &shm->data, sizeof(Data), 0));
 		}
-		printf("Message envoyé\n");
-		
-    }
 
+		printf("Message envoyé\n");
+
+    }
     unlock(&shm->mutex);
 
 	pthread_exit(NULL);
@@ -157,6 +174,7 @@ void *thread_client_resend(void *arg){
 					fprintf(stderr, "Erreur lors de l'envoi du fichier\n");
 				}
 				printf("Erreur lors de l'envoi des données\n");
+				cwait(&shm->ecrire, &shm->mutex);
 			}
 			else{
 				attempts++;
@@ -173,28 +191,28 @@ void *thread_client_resend(void *arg){
 void chat(Client *c){
 
 	c->shm.state = CHAT;
-	Thread thread_send, thread_receive, thread_resend;
+	Thread thread_send, thread_receive;//, thread_resend;
 	c->shm.ack_until = 0;
 	c->shm.size = 0;
 	c->shm.can_write = 1;
+	c->shm.out_fd = STDOUT_FILENO;
 
 	TCHK(pthread_create(&thread_send, NULL, thread_client_send, &c->shm));
 	TCHK(pthread_create(&thread_receive, NULL, thread_client_receive, &c->shm));
-	TCHK(pthread_create(&thread_resend, NULL, thread_client_resend, &c->shm));
+	//TCHK(pthread_create(&thread_resend, NULL, thread_client_resend, &c->shm));
 
-	
-	
+
 	// we use a buffer to for the interaction with the user
 	// which allow him to write his message while the other is writing
 	// and quit at anytime without having to wait that the data
 	// has been correctly sent
 	int taille = strlen(c->pseudo);
-	int size = taille + 2;
+	int size = taille + 1;
 	char buffer[256];
 	memcpy(buffer, c->pseudo, taille);
 
 	buffer[taille+1] = '>';
-	taille+=2;
+	taille+=1;
 	
 	// send the beginning of chat
 	c->shm.state = CHAT;
@@ -213,13 +231,13 @@ void chat(Client *c){
 
 		if(strncmp(buffer + taille, QUIT_CMD, sizeof(QUIT_CMD)) == 0){ 
 			c->shm.state = QUIT;
-			csignal(&c->shm.ecrire);
+			cbroadcast(&c->shm.ecrire);
 			printf(" -> Quitting...\n");
 			break;
 		}
 		if(strncmp(buffer + taille, CLOSE_CMD, sizeof(CLOSE_CMD)) == 0){
 			c->shm.state = QUIT;
-			csignal(&c->shm.ecrire);
+			cbroadcast(&c->shm.ecrire);
 			printf(" -> Closing...\n");
 			break;
 		}
@@ -240,6 +258,8 @@ void chat(Client *c){
 	CHK(send(c->shm.sock_fd, &c->shm.data, sizeof(c->shm.data), 0));
 	unlock(&c->shm.mutex);
 
+	printf(" -> Chat closed\n");
+	//pthread_join(thread_resend,NULL);
 	pthread_join(thread_send, NULL);
 	pthread_join(thread_receive, NULL);
 }
@@ -325,8 +345,8 @@ void get_receiver(Client *c){
 
 	while(continuer){
 		printf("Entrez le pseudo ou l'adresse ip du destinataire : \n");
-		memset(c->shm.buffer, 0, 128);
-		PCHK(fgets(c->shm.buffer, 128, stdin));
+		memset(c->shm.buffer, 0, MAX_PSEUDO_LENGTH);
+		PCHK(fgets(c->shm.buffer, MAX_PSEUDO_LENGTH, stdin));
 		int len = strlen(c->pseudo);
 		if (len > 0 && c->pseudo[--len] == '\n') 
     		c->pseudo[len] = '\0';
@@ -337,11 +357,8 @@ void get_receiver(Client *c){
 			printf("Entrez le port du destinataire : \n");
 			PCHK(fgets(c->shm.buffer, 7, stdin));
 
-			c->dest_addr.sin_port = htons(atoi(c->shm.buffer));
-			if(c->dest_addr.sin_port < 0 || c->dest_addr.sin_port > 65535){
-				c->dest_addr.sin_port = DEFAULT_CLIENT_PORT;
-			}
-
+			int lp = atoi(c->shm.buffer);
+			c->dest_addr.sin_port = lp > 0 ? htons(lp) : DEFAULT_CLIENT_PORT;
 			c->dest_addr.sin_family = AF_INET;
 			continuer = 0;
 		}
@@ -356,7 +373,13 @@ void get_receiver(Client *c){
 			
 
 			// send the pseudo
-			memset(c->shm.buffer, 0, MAX_PSEUDO_LENGTH);
+			printf("Envoi du pseudo \"%s\"", c->shm.buffer);
+			for(int i = 0; i < MAX_PSEUDO_LENGTH; i++){
+				if(c->shm.buffer[i] == '\n'){
+					c->shm.buffer[i] = '\0';
+					break;
+				}
+			}
 			CHK(send(c->shm.sock_fd,c->shm.buffer, MAX_PSEUDO_LENGTH, 0));
 			
 			// receive the answer
@@ -408,12 +431,13 @@ int main(int argc, char **argv){
 	Client c;
 	int port_proxy = argc > 2 ? atoi(argv[2]) : -1;
 	int port_client = argc > 2 ? atoi(argv[2]) : -1;
-	initialize_client(&c, argv[1], port_proxy,port_client);
-	connect_to_proxy(&c);
-	auth(&c);
+	
 
 	int continuer = 1;
 	while(continuer){
+		initialize_client(&c, argv[1], port_proxy,port_client);
+		connect_to_proxy(&c);
+		auth(&c);
 		get_receiver(&c);
 		configure_data(&c);
 		printf("Que voulez-vous faire ?\n");

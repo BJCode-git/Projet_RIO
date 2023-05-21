@@ -16,7 +16,7 @@ src/proxy.c
 .RI "Client * \fBget_client\fP (Shared_memory *shm, char *name)"
 .br
 .ti -1c
-.RI "int \fBget_client_fd\fP (Shared_memory *shm, Sockaddr_in *addr)"
+.RI "Client * \fBget_client_by_addr\fP (Shared_memory *shm, Sockaddr_in *addr)"
 .br
 .ti -1c
 .RI "Server * \fBget_server_with_min_load\fP (Shared_memory *shm)"
@@ -46,7 +46,7 @@ src/proxy.c
 
 .SS "Client* get_client (Shared_memory * shm, char * name)"
 
-.SS "int get_client_fd (Shared_memory * shm, Sockaddr_in * addr)"
+.SS "Client* get_client_by_addr (Shared_memory * shm, Sockaddr_in * addr)"
 
 .SS "Server* get_server_with_min_load (Shared_memory * shm)"
 

@@ -176,6 +176,7 @@ int test_and_correct_crc(uint8_t *m, uint8_t *crc){
 }
 
 #ifdef TEST_CRC
+
 int main(void) {
     uint8_t m = 0;
     printf("Entrez un nombre (8 bits): ");

@@ -104,8 +104,8 @@ Include dependency graph for proxy.c:</div>
 Functions</h2></td></tr>
 <tr class="memitem:a284fe0fca90dbde546fc4f137c388899"><td class="memItemLeft" align="right" valign="top">Client *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="proxy_8c.html#a284fe0fca90dbde546fc4f137c388899">get_client</a> (Shared_memory *shm, char *name)</td></tr>
 <tr class="separator:a284fe0fca90dbde546fc4f137c388899"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae038158ca44e4c7124df6d2b772d80fe"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="proxy_8c.html#ae038158ca44e4c7124df6d2b772d80fe">get_client_fd</a> (Shared_memory *shm, Sockaddr_in *addr)</td></tr>
-<tr class="separator:ae038158ca44e4c7124df6d2b772d80fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f23bbfa9ab72760ec293235fad22a8e"><td class="memItemLeft" align="right" valign="top">Client *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="proxy_8c.html#a8f23bbfa9ab72760ec293235fad22a8e">get_client_by_addr</a> (Shared_memory *shm, Sockaddr_in *addr)</td></tr>
+<tr class="separator:a8f23bbfa9ab72760ec293235fad22a8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3355bb4ecb8e73468f8b0638712c2b4c"><td class="memItemLeft" align="right" valign="top">Server *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="proxy_8c.html#a3355bb4ecb8e73468f8b0638712c2b4c">get_server_with_min_load</a> (Shared_memory *shm)</td></tr>
 <tr class="separator:a3355bb4ecb8e73468f8b0638712c2b4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae7a46f17d6a01715001dc8160693b39c"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="proxy_8c.html#ae7a46f17d6a01715001dc8160693b39c">handle_client_stream</a> (void *arg)</td></tr>
@@ -168,14 +168,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ae038158ca44e4c7124df6d2b772d80fe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae038158ca44e4c7124df6d2b772d80fe">&#9670;&nbsp;</a></span>get_client_fd()</h2>
+<a id="a8f23bbfa9ab72760ec293235fad22a8e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8f23bbfa9ab72760ec293235fad22a8e">&#9670;&nbsp;</a></span>get_client_by_addr()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int get_client_fd </td>
+          <td class="memname">Client* get_client_by_addr </td>
           <td>(</td>
           <td class="paramtype">Shared_memory *&#160;</td>
           <td class="paramname"><em>shm</em>, </td>

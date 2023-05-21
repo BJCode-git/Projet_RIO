@@ -50,7 +50,8 @@ typedef struct{
 Client* find_client(Shared_memory *shm, char *pseudo);
 
 Server* get_server_with_min_load(Shared_memory *shm);
-int get_client_fd(Shared_memory *shm,Sockaddr_in *addr);
+Client* get_client_by_addr(Shared_memory *shm,Sockaddr_in *addr);
+Client* get_client(Shared_memory *shm, char *name);
 
 
 void * handle_client_stream(void *arg);

@@ -38,6 +38,7 @@ void raler(const char* msg){
 #define cwait(p_cond,p_mutex) TCHK(pthread_cond_wait(p_cond,p_mutex))
 #define ctimedwait(p_cond,p_mutex,p_time) TCHK(pthread_cond_timedwait(p_cond,p_mutex,p_time))
 #define csignal(p_cond) TCHK(pthread_cond_signal(p_cond))
+#define cbroadcast(p_cond) TCHK(pthread_cond_broadcast(p_cond))
 
 
 #ifndef DEFAULT_LISTEN_PORT_PROXY
@@ -123,13 +124,13 @@ char* DT_TEXT[]={
   "DT_AEU" 
 };
 
-void print_data(Data *data){
-  printf("\t Data :\n");
+void print_data(const Data *data){
+  //printf("\t Data :\n");
   printf("\t\t Origin : %s:%d",inet_ntoa(data->origin_addr.sin_addr),ntohs(data->origin_addr.sin_port));
   printf(" Dest : %s:%d\n",inet_ntoa(data->dest_addr.sin_addr),ntohs(data->dest_addr.sin_port));
   printf("\t\t Type : %s",DT_TEXT[data->type]);
   printf(" Id : %d\n",data->id);
-  printf("\t\t Data : %d", data->data);
+  printf("\t\t Data : \'%c\'", data->data);
   printf(" Crc : %d\n",data->crc);
 }
 
